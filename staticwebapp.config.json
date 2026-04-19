@@ -2,7 +2,11 @@
   "$schema": "https://json.schemastore.org/staticwebapp.config.json",
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/*.{css,js,png,svg,ico,json}"]
+    "exclude": [
+      "/api/*",
+      "/.auth/*",
+      "/*.{css,js,png,svg,ico,json}"
+    ]
   },
   "routes": [
     {
