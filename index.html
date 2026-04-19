@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
 :root {
   --bg:#07080f; --bg2:#0d0f1c; --bg3:#13162a; --surface:#1a1e35;
@@ -184,6 +185,14 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
 @keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes glow-pulse{0%,100%{text-shadow:0 0 20px var(--amber)}50%{text-shadow:0 0 35px var(--amber)}}
 .pt-num{animation:glow-pulse 3s ease-in-out infinite}
+
+/* MISSION CLEAR BUTTON */
+.mission-clear-btn{margin-top:8px;padding:5px 12px;font-size:11px;font-family:var(--font-body);border-radius:20px;border:1px solid var(--teal);background:var(--teal-dim);color:var(--teal);cursor:pointer;transition:all .15s;display:inline-block}
+.mission-clear-btn:hover{background:rgba(0,229,176,.25)}
+.mission-clear-btn.qr{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.mission-clear-btn.qr:hover{background:rgba(77,166,255,.25)}
+.mission-clear-btn.staff{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
+.mission-clear-btn.staff:hover{background:rgba(255,184,48,.25)}
 </style>
 </head>
 <body>
@@ -261,6 +270,20 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
       </select>
     </div>
     <button class="btn-primary" id="playerSaveBtn" onclick="savePlayer()">登録する</button>
+  </div>
+</div>
+
+<!-- QRスキャンモーダル -->
+<div class="modal-overlay hidden" id="qrModal">
+  <div class="modal-sheet">
+    <button class="modal-close" onclick="closeQrModal()">×</button>
+    <div class="modal-title">QRコードをスキャン</div>
+    <div style="position:relative;width:100%;background:#000;border-radius:var(--r-md);overflow:hidden;margin-bottom:16px">
+      <video id="qrVideo" style="width:100%;display:block" playsinline></video>
+      <canvas id="qrCanvas" style="display:none"></canvas>
+      <div style="position:absolute;inset:0;border:2px solid var(--teal);border-radius:var(--r-md);pointer-events:none;opacity:.6"></div>
+    </div>
+    <div id="qrStatus" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px">カメラを起動中...</div>
   </div>
 </div>
 
@@ -602,11 +625,25 @@ function renderHome() {
       const cleared = p.clearedMissionIds.includes(m.missionId);
       const cls = cleared ? 'cleared' : isUnlocked ? 'available' : 'locked';
       const icon = ICON_MAP[cat] || 'target';
+
+      // クリアボタンの表示制御
+      let actionBtn = '';
+      if (!cleared && isUnlocked) {
+        if (m.clearMethod === 'auto') {
+          actionBtn = `<button class="mission-clear-btn" onclick="clearMissionAuto('${m.missionId}','${p.playerId}')">クリア！</button>`;
+        } else if (m.clearMethod === 'qr') {
+          actionBtn = `<button class="mission-clear-btn qr" onclick="openQrScan('${m.missionId}','${p.playerId}','${m.qrCode||m.missionId}')">QRスキャン</button>`;
+        } else if (m.clearMethod === 'staff') {
+          actionBtn = `<button class="mission-clear-btn staff" onclick="clearMissionStaff('${m.missionId}','${p.playerId}')">申請する</button>`;
+        }
+      }
+
       html += `<div class="mission-item ${cls}" style="animation-delay:${i*0.05}s">
         <div class="mission-icon-wrap" style="background:${col}20">${missionIconSvg(icon, col)}</div>
         <div class="mission-body">
           <div class="mission-name">${m.name}</div>
           <div class="mission-desc">${m.description || ''}</div>
+          ${actionBtn}
         </div>
         <div class="mission-right">
           <div class="mission-pt">+${m.points}pt</div>
@@ -621,6 +658,107 @@ function renderHome() {
   }
   document.getElementById('screen-home').innerHTML =
     `<div class="sec-label">ミッション一覧</div><div class="missions">${html}</div>`;
+}
+
+// ── ミッションクリア処理 ──────────────────────────────
+async function clearMission(missionId, playerId, evidenceType, evidenceData) {
+  try {
+    const res = await apiPost('mission_clear', {
+      playerId,
+      missionId,
+      accountId: STATE.accountId,
+      evidenceType,
+      evidenceData,
+      clearedAt: new Date().toISOString(),
+    });
+    if (res.error) throw new Error(res.error.message);
+
+    // STATEを更新
+    const p = STATE.players.find(x => x.playerId === playerId);
+    if (p && res.status === 'cleared') {
+      p.clearedMissionIds.push(missionId);
+      p.totalPoints += (res.pointsEarned || 0);
+    }
+
+    renderHero();
+    renderHome();
+    const msg = res.status === 'pending'
+      ? `申請完了！${res.message}`
+      : `+${res.pointsEarned}pt 獲得！ミッションクリア！`;
+    showToast(msg);
+  } catch (e) {
+    showToast(e.message, true);
+  }
+}
+
+// auto方式（親がタップ）
+async function clearMissionAuto(missionId, playerId) {
+  await clearMission(missionId, playerId, '185220001', '');
+}
+
+// staff方式（スタッフ申請）
+async function clearMissionStaff(missionId, playerId) {
+  await clearMission(missionId, playerId, '185220003', '');
+}
+
+// ── QRスキャン ────────────────────────────────────────
+let qrScanState = { missionId: null, playerId: null, expectedCode: null, stream: null, timer: null };
+
+function openQrScan(missionId, playerId, expectedCode) {
+  qrScanState = { missionId, playerId, expectedCode, stream: null, timer: null };
+  document.getElementById('qrModal').classList.remove('hidden');
+  document.getElementById('qrStatus').textContent = 'カメラを起動中...';
+  startQrCamera();
+}
+
+function closeQrModal() {
+  stopQrCamera();
+  document.getElementById('qrModal').classList.add('hidden');
+}
+
+async function startQrCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    qrScanState.stream = stream;
+    const video = document.getElementById('qrVideo');
+    video.srcObject = stream;
+    video.play();
+    document.getElementById('qrStatus').textContent = 'QRコードをカメラに向けてください';
+    qrScanState.timer = setInterval(scanQrFrame, 300);
+  } catch (e) {
+    document.getElementById('qrStatus').textContent = 'カメラを起動できませんでした';
+  }
+}
+
+function stopQrCamera() {
+  if (qrScanState.timer) { clearInterval(qrScanState.timer); qrScanState.timer = null; }
+  if (qrScanState.stream) {
+    qrScanState.stream.getTracks().forEach(t => t.stop());
+    qrScanState.stream = null;
+  }
+}
+
+function scanQrFrame() {
+  const video = document.getElementById('qrVideo');
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  const canvas = document.getElementById('qrCanvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  if (code) {
+    if (code.data === qrScanState.expectedCode) {
+      stopQrCamera();
+      document.getElementById('qrModal').classList.add('hidden');
+      clearMission(qrScanState.missionId, qrScanState.playerId, '185220002', code.data);
+    } else {
+      document.getElementById('qrStatus').textContent = 'QRコードが一致しません。正しいコードを読んでください';
+    }
+  }
 }
 
 // ── バッジ ────────────────────────────────────────────
