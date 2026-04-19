@@ -8,591 +8,193 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #07080f;
-  --bg2:      #0d0f1c;
-  --bg3:      #13162a;
-  --surface:  #1a1e35;
-  --border:   rgba(255,255,255,0.08);
-  --border2:  rgba(255,255,255,0.14);
-  --text:     #e8eaf0;
-  --muted:    #7a7f9a;
-  --teal:     #00e5b0;
-  --teal-dim: #00e5b020;
-  --blue:     #4da6ff;
-  --blue-dim: #4da6ff20;
-  --amber:    #ffb830;
-  --amber-dim:#ffb83020;
-  --pink:     #ff6eb0;
-  --pink-dim: #ff6eb020;
-  --green:    #4cde80;
-  --red:      #ff5f5f;
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 20px;
-  --font-head: 'Orbitron', monospace;
-  --font-body: 'Noto Sans JP', sans-serif;
-  --maxw: 430px;
-  --navh: 64px;
+  --bg:#07080f; --bg2:#0d0f1c; --bg3:#13162a; --surface:#1a1e35;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0; --muted:#7a7f9a;
+  --teal:#00e5b0; --teal-dim:#00e5b020;
+  --blue:#4da6ff; --blue-dim:#4da6ff20;
+  --amber:#ffb830; --amber-dim:#ffb83020;
+  --pink:#ff6eb0; --pink-dim:#ff6eb020;
+  --green:#4cde80; --red:#ff5f5f;
+  --r-sm:8px; --r-md:12px; --r-lg:16px;
+  --font-head:'Orbitron',monospace; --font-body:'Noto Sans JP',sans-serif;
+  --maxw:430px; --navh:64px;
 }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.5;
-  min-height: 100dvh;
-  -webkit-font-smoothing: antialiased;
-}
-
-body {
-  display: flex;
-  justify-content: center;
-  background: radial-gradient(ellipse at 50% 0%, #1a1f4020 0%, var(--bg) 70%);
-}
-
-#app {
-  width: 100%;
-  max-width: var(--maxw);
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: var(--bg);
-  overflow: hidden;
-}
-
-/* ── HEADER ── */
-#header {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 16px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo {
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  color: var(--teal);
-  text-shadow: 0 0 18px var(--teal);
-}
-
-.player-tabs {
-  display: flex;
-  gap: 6px;
-}
-
-.player-tab {
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-body);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all .18s;
-  white-space: nowrap;
-}
-
-.player-tab.active {
-  background: var(--teal-dim);
-  border-color: var(--teal);
-  color: var(--teal);
-}
-
-/* ── HERO CARD ── */
-#hero {
-  background: var(--bg2);
-  padding: 14px 16px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.hero-inner {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.badge-area {
-  flex-shrink: 0;
-  width: 60px;
-  height: 60px;
-}
-
-.badge-area svg { width: 60px; height: 60px; }
-
-.hero-info { flex: 1; min-width: 0; }
-
-.hero-name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.rank-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-  font-family: var(--font-head);
-  letter-spacing: .05em;
-}
-
-.rank-badge.beginner { background: var(--teal-dim); border: 1px solid var(--teal); color: var(--teal); }
-.rank-badge.middle   { background: var(--blue-dim); border: 1px solid var(--blue); color: var(--blue); }
-.rank-badge.advanced { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
-.rank-badge.expert   { background: var(--pink-dim); border: 1px solid var(--pink); color: var(--pink); }
-
-.pt-display {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.pt-num {
-  font-family: var(--font-head);
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--amber);
-  text-shadow: 0 0 20px var(--amber);
-  line-height: 1;
-}
-
-.pt-unit { font-size: 12px; color: var(--muted); }
-.pt-next { font-size: 11px; color: var(--muted); margin-left: 4px; }
-
-.progress-track {
-  height: 5px;
-  background: var(--surface);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 10px;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width .5s ease;
-}
-
-.progress-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-/* ── MAIN CONTENT ── */
-#main {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: var(--navh);
-  scroll-behavior: smooth;
-}
-
-.screen { display: none; }
-.screen.active { display: block; }
-
-/* ── SECTION LABEL ── */
-.sec-label {
-  font-family: var(--font-head);
-  font-size: 10px;
-  letter-spacing: .12em;
-  color: var(--muted);
-  padding: 14px 16px 6px;
-}
-
-/* ── MISSION CARDS ── */
-.missions { padding: 0 12px; }
-
-.mission-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 12px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: border-color .15s, opacity .15s;
-  position: relative;
-  overflow: hidden;
-}
-
-.mission-item::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  border-radius: 2px 0 0 2px;
-}
-
-.mission-item.cleared::before { background: var(--teal); }
-.mission-item.available::before { background: var(--blue); }
-.mission-item.locked { opacity: .38; }
-.mission-item.locked::before { background: var(--muted); }
-
-.mission-icon-wrap {
-  width: 40px; height: 40px;
-  border-radius: var(--r-sm);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-
-.mission-body { flex: 1; min-width: 0; }
-
-.mission-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mission-desc {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.mission-right { text-align: right; flex-shrink: 0; }
-
-.mission-pt {
-  font-family: var(--font-head);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--amber);
-}
-
-.mission-status-done {
-  font-size: 10px;
-  color: var(--teal);
-  margin-top: 2px;
-}
-
-.mission-lock-pill {
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: 20px;
-  background: var(--bg3);
-  color: var(--muted);
-  border: 1px solid var(--border);
-}
-
-.rank-divider {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  margin-bottom: 4px;
-}
-
-.rank-divider-line { flex: 1; height: 1px; background: var(--border); }
-.rank-divider-label {
-  font-size: 10px;
-  font-family: var(--font-head);
-  letter-spacing: .08em;
-}
-
-/* ── BADGE SCREEN ── */
-.badge-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 8px 14px 16px;
-}
-
-.badge-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.badge-cell svg { width: 58px; height: 58px; transition: transform .2s; }
-.badge-cell:hover svg { transform: scale(1.08); }
-.badge-cell.locked { opacity: .25; }
-
-.badge-cell-name {
-  font-size: 10px;
-  color: var(--muted);
-  text-align: center;
-}
-
-/* ── RANKING SCREEN ── */
-.rank-list { padding: 0; }
-
-.rank-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  transition: background .15s;
-}
-
-.rank-row.me { background: rgba(77,166,255,.07); }
-
-.rank-pos {
-  width: 24px;
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.pos-1 { color: var(--amber); text-shadow: 0 0 10px var(--amber); }
-.pos-2 { color: #c0c0c0; }
-.pos-3 { color: #cd7f32; }
-
-.rank-avatar {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.rank-name-col { flex: 1; }
-.rank-name { font-size: 13px; font-weight: 500; color: var(--text); }
-.rank-level { font-size: 10px; color: var(--muted); margin-top: 1px; }
-.rank-pt-col {
-  font-family: var(--font-head);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--amber);
-  white-space: nowrap;
-}
-
-/* ── EVENT CARDS ── */
-.events { padding: 0 12px 16px; }
-
-.event-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.event-head {
-  background: var(--bg3);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-}
-
-.event-title {
-  font-family: var(--font-head);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: .06em;
-}
-
-.event-pill {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-weight: 500;
-}
-
-.pill-open  { background: rgba(0,229,176,.15); color: var(--teal); border: 1px solid rgba(0,229,176,.3); }
-.pill-close { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-
-.event-body { padding: 12px 14px; }
-.event-desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-
-.podium-wrap { display: flex; gap: 6px; align-items: flex-end; margin-top: 8px; }
-
-.podium-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.podium-pname { font-size: 10px; color: var(--muted); }
-
-.podium-bar {
-  width: 100%;
-  border-radius: 4px 4px 0 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 600;
-  font-family: var(--font-head);
-}
-
-/* ── SHOP SCREEN ── */
-.shop-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px 6px;
-}
-
-.my-pt-disp {
-  font-family: var(--font-head);
-  font-size: 13px;
-  color: var(--amber);
-}
-
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  padding: 0 12px 16px;
-}
-
-.shop-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  transition: border-color .15s;
-}
-
-.shop-card:hover { border-color: var(--border2); }
-
-.shop-art {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.shop-body { padding: 8px 10px 10px; }
-
-.shop-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.shop-cost {
-  font-family: var(--font-head);
-  font-size: 12px;
-  color: var(--amber);
-  margin-top: 2px;
-}
-
-.shop-btn {
-  margin-top: 8px;
-  width: 100%;
-  padding: 6px;
-  font-size: 11px;
-  font-family: var(--font-body);
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  transition: all .15s;
-}
-
-.shop-btn:hover:not(:disabled) { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
-.shop-btn:disabled { opacity: .35; cursor: not-allowed; }
-
-/* ── BOTTOM NAV ── */
-#nav {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  max-width: var(--maxw);
-  height: var(--navh);
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  display: flex;
-  z-index: 100;
-}
-
-.nav-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 10px;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: color .15s;
-  padding-bottom: 6px;
-}
-
-.nav-btn svg { width: 20px; height: 20px; }
-.nav-btn.active { color: var(--teal); }
-
-/* ── TOAST ── */
-#toast {
-  position: fixed;
-  bottom: calc(var(--navh) + 12px);
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--surface);
-  border: 1px solid var(--teal);
-  color: var(--teal);
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0;
-  transition: all .3s;
-  white-space: nowrap;
-  z-index: 200;
-  pointer-events: none;
-}
-
-#toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ── ANIMATIONS ── */
-@keyframes slideUp {
-  from { transform: translateY(10px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-.mission-item { animation: slideUp .25s ease both; }
-
-@keyframes glow-pulse {
-  0%, 100% { text-shadow: 0 0 20px var(--amber); }
-  50%       { text-shadow: 0 0 35px var(--amber), 0 0 60px var(--amber60); }
-}
-
-.pt-num { animation: glow-pulse 3s ease-in-out infinite; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.5;min-height:100dvh;-webkit-font-smoothing:antialiased}
+body{display:flex;justify-content:center;background:radial-gradient(ellipse at 50% 0%,#1a1f4020 0%,var(--bg) 70%)}
+#app{width:100%;max-width:var(--maxw);min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+
+/* HEADER */
+#header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px 8px;display:flex;flex-direction:column;gap:8px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--font-head);font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--teal);text-shadow:0 0 18px var(--teal)}
+.player-tabs{display:flex;gap:6px}
+.player-tab{padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all .18s;white-space:nowrap}
+.player-tab.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+
+/* HERO */
+#hero{background:var(--bg2);padding:14px 16px 16px;border-bottom:1px solid var(--border)}
+.hero-inner{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+.badge-area{flex-shrink:0;width:60px;height:60px}
+.badge-area svg{width:60px;height:60px}
+.hero-info{flex:1;min-width:0}
+.hero-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.rank-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;font-family:var(--font-head);letter-spacing:.05em}
+.rank-badge.beginner{background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal)}
+.rank-badge.middle{background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue)}
+.rank-badge.advanced{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)}
+.rank-badge.expert{background:var(--pink-dim);border:1px solid var(--pink);color:var(--pink)}
+.pt-display{display:flex;align-items:baseline;gap:6px;margin-top:6px}
+.pt-num{font-family:var(--font-head);font-size:30px;font-weight:700;color:var(--amber);text-shadow:0 0 20px var(--amber);line-height:1}
+.pt-unit{font-size:12px;color:var(--muted)}
+.pt-next{font-size:11px;color:var(--muted);margin-left:4px}
+.progress-track{height:5px;background:var(--surface);border-radius:3px;overflow:hidden;margin-top:10px}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.progress-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding-bottom:var(--navh);scroll-behavior:smooth}
+.screen{display:none}
+.screen.active{display:block}
+.sec-label{font-family:var(--font-head);font-size:10px;letter-spacing:.12em;color:var(--muted);padding:14px 16px 6px}
+
+/* MISSIONS */
+.missions{padding:0 12px}
+.mission-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;animation:slideUp .25s ease both}
+.mission-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px}
+.mission-item.cleared::before{background:var(--teal)}
+.mission-item.available::before{background:var(--blue)}
+.mission-item.locked{opacity:.38}
+.mission-item.locked::before{background:var(--muted)}
+.mission-icon-wrap{width:40px;height:40px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mission-body{flex:1;min-width:0}
+.mission-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mission-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.mission-right{text-align:right;flex-shrink:0}
+.mission-pt{font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--amber)}
+.mission-status-done{font-size:10px;color:var(--teal);margin-top:2px}
+.mission-lock-pill{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+.rank-divider{display:flex;align-items:center;gap:8px;padding:8px 12px;margin-bottom:4px}
+.rank-divider-line{flex:1;height:1px;background:var(--border)}
+.rank-divider-label{font-size:10px;font-family:var(--font-head);letter-spacing:.08em}
+
+/* BADGES */
+.badge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:8px 14px 16px}
+.badge-cell{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.badge-cell svg{width:58px;height:58px;transition:transform .2s}
+.badge-cell:hover svg{transform:scale(1.08)}
+.badge-cell.locked{opacity:.25}
+.badge-cell-name{font-size:10px;color:var(--muted);text-align:center}
+
+/* RANKING */
+.rank-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)}
+.rank-row.me{background:rgba(77,166,255,.07)}
+.rank-pos{width:24px;font-family:var(--font-head);font-size:13px;font-weight:600;text-align:center;flex-shrink:0}
+.pos-1{color:var(--amber);text-shadow:0 0 10px var(--amber)}
+.pos-2{color:#c0c0c0}
+.pos-3{color:#cd7f32}
+.rank-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.rank-name-col{flex:1}
+.rank-name{font-size:13px;font-weight:500;color:var(--text)}
+.rank-level{font-size:10px;color:var(--muted);margin-top:1px}
+.rank-pt-col{font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--amber);white-space:nowrap}
+
+/* EVENTS */
+.events{padding:0 12px 16px}
+.event-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin-bottom:10px}
+.event-head{background:var(--bg3);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.event-title{font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--text);letter-spacing:.06em}
+.event-pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.pill-open{background:rgba(0,229,176,.15);color:var(--teal);border:1px solid rgba(0,229,176,.3)}
+.pill-close{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.event-body{padding:12px 14px}
+.event-desc{font-size:12px;color:var(--muted);margin-bottom:10px}
+
+/* SHOP */
+.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 12px 16px}
+.shop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;transition:border-color .15s}
+.shop-card:hover{border-color:var(--border2)}
+.shop-art{height:80px;display:flex;align-items:center;justify-content:center}
+.shop-body{padding:8px 10px 10px}
+.shop-name{font-size:12px;font-weight:700;color:var(--text)}
+.shop-cost{font-family:var(--font-head);font-size:12px;color:var(--amber);margin-top:2px}
+.shop-btn{margin-top:8px;width:100%;padding:6px;font-size:11px;font-family:var(--font-body);border-radius:var(--r-sm);border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;transition:all .15s}
+.shop-btn:hover:not(:disabled){background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.shop-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* NAV */
+#nav{position:fixed;bottom:0;width:100%;max-width:var(--maxw);height:var(--navh);background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--muted);font-size:10px;font-family:var(--font-body);cursor:pointer;transition:color .15s;padding-bottom:6px}
+.nav-btn svg{width:20px;height:20px}
+.nav-btn.active{color:var(--teal)}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--navh)+12px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--teal);color:var(--teal);padding:8px 18px;border-radius:20px;font-size:12px;font-weight:500;opacity:0;transition:all .3s;white-space:nowrap;z-index:200;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.error{border-color:var(--red);color:var(--red)}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:flex-end;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal-sheet{background:var(--bg2);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:var(--maxw);padding:20px 16px 32px;border-top:1px solid var(--border)}
+.modal-title{font-family:var(--font-head);font-size:13px;font-weight:600;color:var(--text);letter-spacing:.08em;margin-bottom:20px}
+.modal-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;margin-top:-4px}
+
+/* FORMS */
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--teal)}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;appearance:none;cursor:pointer}
+.form-select:focus{border-color:var(--teal)}
+.btn-primary{width:100%;padding:12px;background:var(--teal-dim);border:1px solid var(--teal);border-radius:var(--r-sm);color:var(--teal);font-family:var(--font-head);font-size:12px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:all .15s}
+.btn-primary:hover{background:rgba(0,229,176,.2)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-danger{width:100%;padding:10px;background:transparent;border:1px solid var(--red);border-radius:var(--r-sm);color:var(--red);font-size:12px;cursor:pointer;margin-top:8px;transition:all .15s}
+.btn-danger:hover{background:rgba(255,95,95,.1)}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;gap:16px}
+#loading.hidden{display:none}
+.loading-logo{font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--teal);text-shadow:0 0 24px var(--teal);letter-spacing:.2em}
+.loading-spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
+.loading-msg{font-size:12px;color:var(--muted)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SETUP SCREEN */
+#screen-setup{padding:20px 16px}
+.setup-title{font-family:var(--font-head);font-size:14px;color:var(--teal);margin-bottom:8px;letter-spacing:.08em}
+.setup-desc{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.7}
+.player-list-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.player-list-avatar{width:36px;height:36px;border-radius:50%;background:var(--teal-dim);border:1px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal);flex-shrink:0}
+.player-list-info{flex:1}
+.player-list-name{font-size:14px;font-weight:700;color:var(--text)}
+.player-list-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.player-edit-btn{background:none;border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--muted);font-size:11px;padding:4px 10px;cursor:pointer;transition:all .15s}
+.player-edit-btn:hover{border-color:var(--teal);color:var(--teal)}
+.add-player-btn{width:100%;padding:12px;background:transparent;border:1px dashed var(--border2);border-radius:var(--r-md);color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.add-player-btn:hover{border-color:var(--teal);color:var(--teal)}
+.setup-start-btn{width:100%;padding:14px;background:var(--teal-dim);border:1px solid var(--teal);border-radius:var(--r-md);color:var(--teal);font-family:var(--font-head);font-size:13px;font-weight:600;letter-spacing:.08em;cursor:pointer;margin-top:20px;transition:all .15s}
+.setup-start-btn:hover{background:rgba(0,229,176,.2)}
+.setup-start-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ANIMATIONS */
+@keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes glow-pulse{0%,100%{text-shadow:0 0 20px var(--amber)}50%{text-shadow:0 0 35px var(--amber)}}
+.pt-num{animation:glow-pulse 3s ease-in-out infinite}
 </style>
 </head>
 <body>
-<div id="app">
 
+<!-- ローディング画面 -->
+<div id="loading">
+  <div class="loading-logo">THE HANGAR</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-msg" id="loadingMsg">起動中...</div>
+</div>
+
+<div id="app">
   <div id="header">
     <div class="header-top">
       <div class="logo">THE HANGAR</div>
@@ -602,9 +204,7 @@ body {
 
   <div id="hero">
     <div class="hero-inner">
-      <div class="badge-area">
-        <svg id="heroBadgeSvg" viewBox="0 0 60 60"></svg>
-      </div>
+      <div class="badge-area"><svg id="heroBadgeSvg" viewBox="0 0 60 60"></svg></div>
       <div class="hero-info">
         <div class="hero-name" id="heroName">—</div>
         <div><span class="rank-badge" id="heroRankBadge"></span></div>
@@ -615,161 +215,352 @@ body {
         <span class="pt-next" id="heroNext"></span>
       </div>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progFill"></div>
-    </div>
-    <div class="progress-labels">
-      <span id="progFrom"></span>
-      <span id="progTo"></span>
-    </div>
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="progress-labels"><span id="progFrom"></span><span id="progTo"></span></div>
   </div>
 
   <div id="main">
-    <div id="screen-home" class="screen active"></div>
+    <div id="screen-setup" class="screen"></div>
+    <div id="screen-home"  class="screen"></div>
     <div id="screen-badge" class="screen"></div>
-    <div id="screen-rank" class="screen"></div>
-    <div id="screen-shop" class="screen"></div>
+    <div id="screen-rank"  class="screen"></div>
+    <div id="screen-shop"  class="screen"></div>
   </div>
 
   <nav id="nav">
     <button class="nav-btn active" id="nb-home" onclick="switchTab('home')">
-      <svg viewBox="0 0 20 20" fill="none"><path d="M2 9L10 2l8 7v9a1 1 0 01-1 1H3a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-      ホーム
+      <svg viewBox="0 0 20 20" fill="none"><path d="M2 9L10 2l8 7v9a1 1 0 01-1 1H3a1 1 0 01-1-1V9z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>ホーム
     </button>
     <button class="nav-btn" id="nb-badge" onclick="switchTab('badge')">
-      <svg viewBox="0 0 20 20" fill="none"><polygon points="10,2 12.5,7.5 18.5,8 14,12.5 15.5,18.5 10,15.5 4.5,18.5 6,12.5 1.5,8 7.5,7.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
-      バッジ
+      <svg viewBox="0 0 20 20" fill="none"><polygon points="10,2 12.5,7.5 18.5,8 14,12.5 15.5,18.5 10,15.5 4.5,18.5 6,12.5 1.5,8 7.5,7.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>バッジ
     </button>
     <button class="nav-btn" id="nb-rank" onclick="switchTab('rank')">
-      <svg viewBox="0 0 20 20" fill="none"><rect x="1" y="11" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7.5" y="7" width="5" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="14" y="2" width="5" height="17" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
-      ランキング
+      <svg viewBox="0 0 20 20" fill="none"><rect x="1" y="11" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7.5" y="7" width="5" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="14" y="2" width="5" height="17" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>ランキング
     </button>
     <button class="nav-btn" id="nb-shop" onclick="switchTab('shop')">
-      <svg viewBox="0 0 20 20" fill="none"><path d="M2 5h16L16 14H4L2 5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.4" fill="currentColor"/><circle cx="13.5" cy="17" r="1.4" fill="currentColor"/></svg>
-      ショップ
+      <svg viewBox="0 0 20 20" fill="none"><path d="M2 5h16L16 14H4L2 5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.4" fill="currentColor"/><circle cx="13.5" cy="17" r="1.4" fill="currentColor"/></svg>ショップ
     </button>
   </nav>
+</div>
 
+<!-- プレイヤー登録/編集モーダル -->
+<div class="modal-overlay hidden" id="playerModal">
+  <div class="modal-sheet">
+    <button class="modal-close" onclick="closePlayerModal()">×</button>
+    <div class="modal-title" id="playerModalTitle">パイロット登録</div>
+    <div class="form-group">
+      <label class="form-label">パイロット名</label>
+      <input class="form-input" id="playerNameInput" type="text" placeholder="例：たろう" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">区分</label>
+      <select class="form-select" id="playerAgeInput">
+        <option value="child">子ども</option>
+        <option value="adult">大人</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="playerSaveBtn" onclick="savePlayer()">登録する</button>
+  </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────
+// ── API 設定 ──────────────────────────────────────────
+// Logic Apps の URL をここに設定してください
+const API_POST = 'https://prod-12.japaneast.logic.azure.com:443/workflows/aabd58e5133445fd919f56fda0874fd2/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=XQnrcVDi61hN8nBqhcTvSAgUFXgu4ThCY1PVFX8Al4c';
+const API_GET  = 'https://prod-16.japaneast.logic.azure.com:443/workflows/c52fbe515a9d46a5b799eec930242591/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=beXHqRPc12aZ20VZGM_ek0PIS6AQgW5JL7oIlRUFLds';
 
-const RANKS = ['beginner','middle','advanced','expert'];
-
-const RANK_META = {
-  beginner: { label:'初級パイロット', color:'#00e5b0', next: 20,  progTo:'中級 20pt',  from:'初級' },
-  middle:   { label:'中級パイロット', color:'#4da6ff', next: 100, progTo:'上級 100pt', from:'中級' },
-  advanced: { label:'上級パイロット', color:'#ffb830', next: 200, progTo:'エキスパ 200pt', from:'上級' },
-  expert:   { label:'エキスパート',   color:'#ff6eb0', next: null, progTo:'最高ランク', from:'エキスパ' },
-};
-
-const RANK_THRESHOLD = { beginner: 0, middle: 20, advanced: 100, expert: 200 };
-
-function ptToRank(pt) {
-  if (pt >= 200) return 'expert';
-  if (pt >= 100) return 'advanced';
-  if (pt >= 20)  return 'middle';
-  return 'beginner';
+// SWA の /.auth/me からLINE ユーザー情報を取得
+async function getLineUserId() {
+  try {
+    const res = await fetch('/.auth/me');
+    const data = await res.json();
+    const claims = data?.clientPrincipal?.claims || [];
+    const sub = claims.find(c => c.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier');
+    return sub?.val || null;
+  } catch { return null; }
 }
 
-const PLAYERS = [
-  { id:'p1', name:'たろう',  pt:38,  clearedIds:['m1','m2','m5'] },
-  { id:'p2', name:'はなこ',  pt:8,   clearedIds:['m1'] },
-  { id:'p3', name:'けんた',  pt:147, clearedIds:['m1','m2','m3','m4','m5','m6','m7','m9'] },
-];
-
-// ミッション定義 — requiredRank: このランク以上で表示
-const MISSIONS = [
-  // 初級
-  { id:'m1',  name:'的当てゲーム',    desc:'トイドローンでお菓子を落とせ',   pt:1, requiredRank:'beginner', category:'初級', icon:'target',  color:'#00e5b0' },
-  { id:'m2',  name:'風船割3個',       desc:'時間内に3個以上割る',            pt:2, requiredRank:'beginner', category:'初級', icon:'balloon', color:'#00e5b0' },
-  { id:'m3',  name:'輪くぐり300点',   desc:'Skykickで300点以上',             pt:2, requiredRank:'beginner', category:'初級', icon:'ring',    color:'#00e5b0' },
-  // 中級
-  { id:'m4',  name:'等高度撮影',      desc:'Mini2で5分以内に完了',           pt:3, requiredRank:'middle', category:'中級', icon:'camera',  color:'#4da6ff' },
-  { id:'m5',  name:'ドローンアスレチック', desc:'所定の操作を全クリア',       pt:3, requiredRank:'middle', category:'中級', icon:'athletic',color:'#4da6ff' },
-  // 上級
-  { id:'m6',  name:'オリエンテーション', desc:'QR謎解きでHANGARを探索',      pt:4, requiredRank:'advanced', category:'上級', icon:'qr',      color:'#ffb830' },
-  { id:'m7',  name:'パノラマ撮影',    desc:'30〜100m上空を自由撮影',         pt:4, requiredRank:'advanced', category:'上級', icon:'panorama',color:'#ffb830' },
-  { id:'m8',  name:'FPVタイムアタック', desc:'アリーナ3周のタイムを競う',    pt:5, requiredRank:'advanced', category:'FPV', icon:'fpv',     color:'#ff6eb0' },
-  { id:'m9',  name:'屋根裏探検ツアー', desc:'AVATAでダクト内を撮影',         pt:5, requiredRank:'advanced', category:'FPV', icon:'explore', color:'#ff6eb0' },
-  // エキスパ
-  { id:'m10', name:'月間ランキングTOP3', desc:'今月の上位3位に入る',         pt:10, requiredRank:'expert', category:'HANGAR杯', icon:'trophy', color:'#ff6eb0' },
-];
-
-const BADGES = [
-  { id:'bg-beginner', name:'初級認定',    rank:'beginner', unlock:'beginner' },
-  { id:'bg-middle',   name:'中級認定',    rank:'middle',   unlock:'middle'   },
-  { id:'bg-advanced', name:'上級認定',    rank:'advanced', unlock:'advanced' },
-  { id:'bg-expert',   name:'エキスパート', rank:'expert',  unlock:'expert'   },
-  { id:'bg-m5',       name:'5ミッション', rank:'mission5', unlock:(p)=> p.clearedIds.length >= 5 },
-  { id:'bg-m10',      name:'10ミッション',rank:'mission10',unlock:(p)=> p.clearedIds.length >= 10},
-  { id:'bg-hangar',   name:'HANGAR杯',   rank:'hangar',   unlock:'never'    },
-  { id:'bg-fpv',      name:'FPVマスター', rank:'fpv',      unlock:(p)=> p.clearedIds.includes('m8') },
-];
-
-const RANKING = [
-  { name:'よしき', initials:'YK', pt:142, rank:'advanced', col:'#FAEEDA', tcol:'#633806' },
-  { name:'りなこ', initials:'RN', pt:98,  rank:'middle',   col:'#1a2a40', tcol:'#4da6ff' },
-  { name:'だいき', initials:'DK', pt:76,  rank:'middle',   col:'#2a1a20', tcol:'#ff6eb0' },
-  { name:'さくら', initials:'SK', pt:55,  rank:'middle',   col:'#1a2040', tcol:'#7a7f9a' },
-];
-
-const SHOP_ITEMS = [
-  { id:'s1', name:'ドリンク1杯',   cost:2,   artType:'drink',  color:'#00e5b020', stroke:'#00e5b0' },
-  { id:'s2', name:'ステッカー',    cost:100, artType:'sticker',color:'#4da6ff20', stroke:'#4da6ff' },
-  { id:'s3', name:'HS210ドローン', cost:300, artType:'drone',  color:'#ffb83020', stroke:'#ffb830' },
-  { id:'s4', name:'Tシャツ',       cost:300, artType:'tshirt', color:'#ff6eb020', stroke:'#ff6eb0' },
-  { id:'s5', name:'HS420ドローン', cost:550, artType:'drone2', color:'#ffb83020', stroke:'#ffb830' },
-  { id:'s6', name:'パーカー',      cost:550, artType:'hoodie', color:'#ff6eb020', stroke:'#ff6eb0' },
-];
-
-let currentPlayerIdx = 0;
-let currentPlayer = () => PLAYERS[currentPlayerIdx];
-let currentRank = () => ptToRank(currentPlayer().pt);
-
-// ── BADGE DRAWING ─────────────────────────────────────
-
-const BADGE_CFG = {
-  beginner:  { bg:'#00e5b020', stroke:'#00e5b0', fill:'#00e5b0', label:'初',  fc:'#004d3d' },
-  middle:    { bg:'#4da6ff20', stroke:'#4da6ff', fill:'#4da6ff', label:'中',  fc:'#0a3060' },
-  advanced:  { bg:'#ffb83020', stroke:'#ffb830', fill:'#ffb830', label:'上',  fc:'#5a3a00' },
-  expert:    { bg:'#ff6eb020', stroke:'#ff6eb0', fill:'#ff6eb0', label:'EX',  fc:'#5a1030' },
-  mission5:  { bg:'#4cde8020', stroke:'#4cde80', fill:'#4cde80', label:'×5',  fc:'#0a3020' },
-  mission10: { bg:'#4cde8030', stroke:'#4cde80', fill:'#4cde80', label:'×10', fc:'#0a3020' },
-  hangar:    { bg:'#7a7f9a20', stroke:'#7a7f9a', fill:'#7a7f9a', label:'H',   fc:'#2a2a3a' },
-  fpv:       { bg:'#ff5f5f20', stroke:'#ff5f5f', fill:'#ff5f5f', label:'FPV', fc:'#4a0000' },
+// ── アプリ状態 ────────────────────────────────────────
+let STATE = {
+  accountId: null,
+  lineUserId: null,
+  players: [],        // [{playerId, name, ageGroup, currentLevel, totalPoints, sortOrder, clearedMissionIds:[]}]
+  missions: [],       // APIから取得
+  shopItems: [],      // APIから取得
+  currentPlayerIdx: 0,
+  editingPlayerId: null,
 };
 
-function drawBadgeSvg(svgEl, rankKey, size) {
-  const s = size || 60;
-  const h = s / 2;
-  const c = BADGE_CFG[rankKey] || BADGE_CFG.beginner;
-  const pts = 6, ro = h - 3, ri = ro * 0.7;
-  let star = '';
-  for (let i = 0; i < pts * 2; i++) {
-    const ang = (i * Math.PI / pts) - Math.PI / 2;
-    const r = i % 2 === 0 ? ro : ri;
-    const x = h + r * Math.cos(ang);
-    const y = h + r * Math.sin(ang);
-    star += (i === 0 ? 'M' : 'L') + x.toFixed(2) + ',' + y.toFixed(2);
+const RANKS = ['beginner','middle','advanced','expert'];
+const RANK_META = {
+  beginner: { label:'初級パイロット', color:'#00e5b0', threshold:0,   next:20,  progTo:'中級 20pt',       from:'初級' },
+  middle:   { label:'中級パイロット', color:'#4da6ff', threshold:20,  next:100, progTo:'上級 100pt',      from:'中級' },
+  advanced: { label:'上級パイロット', color:'#ffb830', threshold:100, next:200, progTo:'エキスパ 200pt',  from:'上級' },
+  expert:   { label:'エキスパート',   color:'#ff6eb0', threshold:200, next:null,progTo:'最高ランク',      from:'エキスパ' },
+};
+
+function currentPlayer() { return STATE.players[STATE.currentPlayerIdx] || null; }
+
+// ── API 呼び出し ─────────────────────────────────────
+async function apiPost(action, payload) {
+  const res = await fetch(API_POST, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, payload }),
+  });
+  return res.json();
+}
+
+async function apiGet(action, params = {}) {
+  const qs = new URLSearchParams({ action, ...params }).toString();
+  const res = await fetch(`${API_GET}?${qs}`);
+  return res.json();
+}
+
+// ── 起動処理 ─────────────────────────────────────────
+async function boot() {
+  setLoading('LINE認証を確認中...');
+  try {
+    // LINE ログイン確認
+    const lineUserId = await getLineUserId();
+    if (!lineUserId) {
+      // 未認証 → LINEログインへリダイレクト
+      window.location.href = '/.auth/login/line?post_login_redirect_uri=/';
+      return;
+    }
+    STATE.lineUserId = lineUserId;
+
+    // auth_session
+    setLoading('アカウントを確認中...');
+    const authRes = await apiPost('auth_session', { lineUserId });
+    if (authRes.error) throw new Error(authRes.error.message);
+    STATE.accountId = authRes.accountId;
+
+    // プレイヤー一覧取得
+    setLoading('プレイヤーデータを読み込み中...');
+    const playersRes = await apiGet('get_players', { accountId: STATE.accountId });
+    if (playersRes.error) throw new Error(playersRes.error.message);
+
+    // clearedMissionIds をプレイヤーごとに整理
+    const clearLogs = playersRes.clearLogs || [];
+    STATE.players = (playersRes.players || []).map(p => ({
+      ...p,
+      clearedMissionIds: clearLogs
+        .filter(l => l._cr877_playerid_value === p.playerId)
+        .map(l => l._cr877_missionid_value),
+    }));
+
+    // ミッション・ショップ並行取得
+    setLoading('ミッション情報を読み込み中...');
+    const [missionsRes, shopRes] = await Promise.all([
+      apiGet('get_missions'),
+      apiGet('get_shop'),
+    ]);
+    STATE.missions  = missionsRes.missions || [];
+    STATE.shopItems = shopRes.items || [];
+
+    hideLoading();
+
+    // プレイヤーがいない → セットアップ画面
+    if (STATE.players.length === 0) {
+      showApp();
+      renderSetup();
+      document.getElementById('header').style.display = 'none';
+      document.getElementById('hero').style.display = 'none';
+      document.getElementById('nav').style.display = 'none';
+      document.getElementById('screen-setup').classList.add('active');
+    } else {
+      showApp();
+      initMainApp();
+    }
+  } catch (e) {
+    hideLoading();
+    showToast('読み込みエラー: ' + e.message, true);
   }
-  star += 'Z';
-  const fs = rankKey === 'fpv' || rankKey === 'mission10' ? Math.floor(s * 0.16) : Math.floor(s * 0.2);
-  svgEl.setAttribute('viewBox', `0 0 ${s} ${s}`);
-  svgEl.innerHTML = `
-    <path d="${star}" fill="${c.bg}" stroke="${c.stroke}" stroke-width="1.6"/>
-    <circle cx="${h}" cy="${h}" r="${h * 0.38}" fill="${c.fill}" opacity="0.25"/>
-    <circle cx="${h}" cy="${h}" r="${h * 0.28}" fill="${c.fill}" opacity="0.5"/>
-    <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central"
-      font-size="${fs}" font-weight="700" fill="${c.fc}" font-family="'Orbitron',monospace">${c.label}</text>
+}
+
+function setLoading(msg) {
+  document.getElementById('loadingMsg').textContent = msg;
+  document.getElementById('loading').classList.remove('hidden');
+}
+function hideLoading() { document.getElementById('loading').classList.add('hidden'); }
+function showApp() { document.getElementById('app').style.visibility = 'visible'; }
+
+// ── セットアップ画面 ──────────────────────────────────
+function renderSetup() {
+  const container = document.getElementById('screen-setup');
+  const count = STATE.players.length;
+
+  let playersHtml = STATE.players.map(p => `
+    <div class="player-list-item">
+      <div class="player-list-avatar">${p.name.charAt(0)}</div>
+      <div class="player-list-info">
+        <div class="player-list-name">${p.name}</div>
+        <div class="player-list-sub">${p.ageGroup === 'child' ? '子ども' : '大人'} / ${RANK_META[p.currentLevel]?.label || p.currentLevel}</div>
+      </div>
+      <button class="player-edit-btn" onclick="openEditPlayer('${p.playerId}')">編集</button>
+    </div>
+  `).join('');
+
+  const canAdd = count < 3;
+  const canStart = count > 0;
+
+  container.innerHTML = `
+    <div class="setup-title">パイロット登録</div>
+    <div class="setup-desc">一緒に飛ぶパイロットを登録してください。<br>最大3名まで登録できます。</div>
+    ${playersHtml}
+    ${canAdd ? `<button class="add-player-btn" onclick="openAddPlayer()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      パイロットを追加
+    </button>` : ''}
+    <button class="setup-start-btn" ${canStart ? '' : 'disabled'} onclick="startApp()">
+      フライト開始
+    </button>
   `;
 }
 
-// ── MISSION ICONS ─────────────────────────────────────
+function startApp() {
+  document.getElementById('header').style.display = '';
+  document.getElementById('hero').style.display = '';
+  document.getElementById('nav').style.display = '';
+  document.getElementById('screen-setup').classList.remove('active');
+  initMainApp();
+}
 
+// ── プレイヤー登録・編集モーダル ──────────────────────
+function openAddPlayer() {
+  STATE.editingPlayerId = null;
+  document.getElementById('playerModalTitle').textContent = 'パイロット登録';
+  document.getElementById('playerNameInput').value = '';
+  document.getElementById('playerAgeInput').value = 'child';
+  document.getElementById('playerSaveBtn').textContent = '登録する';
+  document.getElementById('playerModal').classList.remove('hidden');
+}
+
+function openEditPlayer(playerId) {
+  const p = STATE.players.find(x => x.playerId === playerId);
+  if (!p) return;
+  STATE.editingPlayerId = playerId;
+  document.getElementById('playerModalTitle').textContent = 'パイロット情報を編集';
+  document.getElementById('playerNameInput').value = p.name;
+  document.getElementById('playerAgeInput').value = p.ageGroup;
+  document.getElementById('playerSaveBtn').textContent = '更新する';
+  document.getElementById('playerModal').classList.remove('hidden');
+}
+
+function closePlayerModal() {
+  document.getElementById('playerModal').classList.add('hidden');
+}
+
+async function savePlayer() {
+  const name = document.getElementById('playerNameInput').value.trim();
+  const ageGroup = document.getElementById('playerAgeInput').value;
+  if (!name) { showToast('名前を入力してください', true); return; }
+
+  const btn = document.getElementById('playerSaveBtn');
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+
+  try {
+    if (STATE.editingPlayerId) {
+      // 更新
+      const res = await apiPost('update_player', {
+        playerId: STATE.editingPlayerId, name, ageGroup,
+      });
+      if (res.error) throw new Error(res.error.message);
+      const idx = STATE.players.findIndex(p => p.playerId === STATE.editingPlayerId);
+      if (idx >= 0) { STATE.players[idx].name = name; STATE.players[idx].ageGroup = ageGroup; }
+      showToast(`${name} の情報を更新しました`);
+    } else {
+      // 新規登録
+      const sortOrder = STATE.players.length + 1;
+      const res = await apiPost('create_player', {
+        accountId: STATE.accountId, name, ageGroup, sortOrder,
+      });
+      if (res.error) throw new Error(res.error.message);
+      STATE.players.push({ ...res, clearedMissionIds: [] });
+      showToast(`${name} を登録しました`);
+    }
+    closePlayerModal();
+    // セットアップ中か確認して再描画
+    if (document.getElementById('screen-setup').classList.contains('active')) {
+      renderSetup();
+    } else {
+      renderPlayerTabs();
+      renderHero();
+    }
+  } catch (e) {
+    showToast(e.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── メインアプリ初期化 ────────────────────────────────
+function initMainApp() {
+  renderPlayerTabs();
+  renderHero();
+  switchTab('home');
+}
+
+// ── プレイヤータブ ─────────────────────────────────────
+function renderPlayerTabs() {
+  const tabs = document.getElementById('playerTabs');
+  tabs.innerHTML = STATE.players.map((p, i) =>
+    `<button class="player-tab ${i === STATE.currentPlayerIdx ? 'active' : ''}"
+      onclick="switchPlayer(${i})">${p.name}</button>`
+  ).join('');
+}
+
+function switchPlayer(idx) {
+  STATE.currentPlayerIdx = idx;
+  renderPlayerTabs();
+  renderHero();
+  const active = document.querySelector('.screen.active');
+  if (active) renderScreen(active.id.replace('screen-', ''));
+}
+
+// ── ヒーロー ──────────────────────────────────────────
+function renderHero() {
+  const p = currentPlayer();
+  if (!p) return;
+  const rank = p.currentLevel;
+  const meta = RANK_META[rank];
+  document.getElementById('heroName').textContent = p.name;
+  document.getElementById('heroPt').textContent = p.totalPoints;
+  const pill = document.getElementById('heroRankBadge');
+  pill.className = 'rank-badge ' + rank;
+  pill.textContent = meta.label;
+  const low = meta.threshold;
+  const high = meta.next ? RANK_META[RANKS[RANKS.indexOf(rank)+1]]?.threshold : low+100;
+  const pct = meta.next ? Math.min(100, Math.round(((p.totalPoints - low)/(high - low))*100)) : 100;
+  const fill = document.getElementById('progFill');
+  fill.style.width = pct + '%';
+  fill.style.background = meta.color;
+  document.getElementById('progFrom').textContent = meta.from;
+  document.getElementById('progTo').textContent = meta.next ? meta.progTo : '最高ランク到達';
+  document.getElementById('heroNext').textContent = meta.next ? `あと ${meta.next - p.totalPoints}pt` : 'MAX';
+  drawBadgeSvg(document.getElementById('heroBadgeSvg'), rank, 60);
+}
+
+// ── タブ切り替え ─────────────────────────────────────
+function switchTab(name) {
+  ['setup','home','badge','rank','shop'].forEach(n => {
+    document.getElementById('screen-'+n)?.classList.toggle('active', n === name);
+    document.getElementById('nb-'+n)?.classList.toggle('active', n === name);
+  });
+  renderScreen(name);
+}
+function renderScreen(name) {
+  if (name === 'home')  renderHome();
+  if (name === 'badge') renderBadge();
+  if (name === 'rank')  renderRank();
+  if (name === 'shop')  renderShop();
+}
+
+// ── ホーム（ミッション一覧） ──────────────────────────
 function missionIconSvg(type, color) {
   const icons = {
     target:   `<circle cx="12" cy="12" r="9" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="5" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2" fill="${color}"/>`,
@@ -777,8 +568,8 @@ function missionIconSvg(type, color) {
     ring:     `<circle cx="12" cy="12" r="8" stroke="${color}" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="4" stroke="${color}" stroke-width="1" fill="none" stroke-dasharray="2 2"/>`,
     camera:   `<rect x="3" y="7" width="18" height="13" rx="2" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="13" r="3.5" stroke="${color}" stroke-width="1.4" fill="none"/><path d="M9 7V5h6v2" stroke="${color}" stroke-width="1.4" stroke-linejoin="round"/>`,
     athletic: `<path d="M4 12h4l2-4 4 8 2-4h4" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
-    qr:       `<rect x="3" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="1.3" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="1.3" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="${color}" stroke-width="1.3" fill="none"/><rect x="5" y="5" width="3" height="3" fill="${color}"/><rect x="16" y="5" width="3" height="3" fill="${color}"/><rect x="5" y="16" width="3" height="3" fill="${color}"/><path d="M14 14h3v3M14 17h3v3M17 14v3" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/>`,
-    panorama: `<path d="M3 12 Q6 7 12 7 Q18 7 21 12 Q18 17 12 17 Q6 17 3 12Z" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="3" fill="${color}"/>`,
+    qr:       `<rect x="3" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="1.3" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="1.3" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="${color}" stroke-width="1.3" fill="none"/><rect x="5" y="5" width="3" height="3" fill="${color}"/><rect x="16" y="5" width="3" height="3" fill="${color}"/><rect x="5" y="16" width="3" height="3" fill="${color}"/>`,
+    panorama: `<path d="M3 12Q6 7 12 7Q18 7 21 12Q18 17 12 17Q6 17 3 12Z" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="3" fill="${color}"/>`,
     fpv:      `<path d="M12 3L21 8v5l-9 5-9-5V8L12 3z" stroke="${color}" stroke-width="1.4" fill="${color}15" stroke-linejoin="round"/><circle cx="12" cy="11" r="2.5" fill="${color}"/>`,
     explore:  `<path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z" stroke="${color}" stroke-width="1.4" fill="${color}15"/><circle cx="12" cy="9" r="2.5" fill="${color}"/>`,
     trophy:   `<path d="M8 2h8v8a4 4 0 01-8 0V2z" stroke="${color}" stroke-width="1.4" fill="${color}20"/><path d="M4 4H8M20 4h-4" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/><path d="M12 14v4M8 21h8" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/>`,
@@ -786,70 +577,23 @@ function missionIconSvg(type, color) {
   return `<svg viewBox="0 0 24 24" fill="none" style="width:22px;height:22px">${icons[type] || icons.target}</svg>`;
 }
 
-// ── SHOP ART ──────────────────────────────────────────
-
-function shopArtSvg(type, color, stroke) {
-  const arts = {
-    drink:  `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><rect x="16" y="14" width="20" height="26" rx="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><path d="M19 14V10a3 3 0 016 0" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/><line x1="16" y1="20" x2="36" y2="20" stroke="${stroke}" stroke-width="0.8" stroke-dasharray="2 2"/><ellipse cx="36" cy="20" rx="5" ry="3" fill="${color}" stroke="${stroke}" stroke-width="1"/></svg>`,
-    sticker:`<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><polygon points="26,8 30,18 42,18 33,25 36,36 26,29 16,36 19,25 10,18 22,18" fill="${color}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
-    drone:  `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><rect x="18" y="22" width="16" height="10" rx="3" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="14" cy="20" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="38" cy="20" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="14" cy="34" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="38" cy="34" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="26" cy="27" r="3" fill="${stroke}" opacity=".5"/></svg>`,
-    tshirt: `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><path d="M16 14h20l4 8-5 2v14H17V24l-5-2 4-8z" fill="${color}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
-    drone2: `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><rect x="17" y="21" width="18" height="12" rx="3" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="13" cy="19" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="39" cy="19" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="13" cy="35" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="39" cy="35" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><rect x="23" y="24" width="6" height="6" rx="1" fill="${stroke}" opacity=".5"/><path d="M22 12l4-5 4 5" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/></svg>`,
-    hoodie: `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><path d="M18 14l-6 8 5 2v14h18V24l5-2-6-8c-2 3-4 4-8 4s-6-1-8-4z" fill="${color}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/><path d="M22 14a4 4 0 004 3 4 4 0 004-3" stroke="${stroke}" stroke-width="1" stroke-linecap="round"/></svg>`,
-  };
-  return arts[type] || arts.drink;
-}
-
-// ── RENDER: HERO ──────────────────────────────────────
-
-function renderHero() {
-  const p = currentPlayer();
-  const rank = ptToRank(p.pt);
-  const meta = RANK_META[rank];
-
-  document.getElementById('heroName').textContent = p.name;
-  document.getElementById('heroPt').textContent = p.pt;
-
-  const pill = document.getElementById('heroRankBadge');
-  pill.className = 'rank-badge ' + rank;
-  pill.textContent = meta.label;
-
-  const fill = document.getElementById('progFill');
-  const thresholds = Object.values(RANK_THRESHOLD);
-  const low = RANK_THRESHOLD[rank];
-  const high = meta.next ? RANK_THRESHOLD[RANKS[RANKS.indexOf(rank) + 1]] : low + 100;
-  const pct = meta.next ? Math.min(100, Math.round(((p.pt - low) / (high - low)) * 100)) : 100;
-  fill.style.width = pct + '%';
-  fill.style.background = meta.color;
-
-  document.getElementById('progFrom').textContent = meta.from;
-  document.getElementById('progTo').textContent = meta.next ? meta.progTo : '最高ランク到達';
-  document.getElementById('heroNext').textContent = meta.next ? `あと ${meta.next - p.pt}pt` : 'MAX';
-
-  drawBadgeSvg(document.getElementById('heroBadgeSvg'), rank, 60);
-}
-
-// ── RENDER: HOME / MISSIONS ───────────────────────────
+const CAT_COLOR = { '初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0' };
+const CAT_RANK_MIN = { '初級':'beginner','中級':'middle','上級':'advanced','FPV':'advanced','HANGAR杯':'expert' };
+const ICON_MAP = { '初級':'target','中級':'camera','上級':'panorama','FPV':'fpv','HANGAR杯':'trophy' };
 
 function renderHome() {
   const p = currentPlayer();
-  const rank = ptToRank(p.pt);
-  const rankIdx = RANKS.indexOf(rank);
-  const container = document.getElementById('screen-home');
-
+  if (!p) return;
+  const rankIdx = RANKS.indexOf(p.currentLevel);
   const cats = ['初級','中級','上級','FPV','HANGAR杯'];
-  const catRankMin = { '初級':'beginner','中級':'middle','上級':'advanced','FPV':'advanced','HANGAR杯':'expert' };
-  const catColor = { '初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0' };
-
   let html = '';
 
   for (const cat of cats) {
-    const items = MISSIONS.filter(m => m.category === cat);
+    const items = STATE.missions.filter(m => m.category === cat);
     if (!items.length) continue;
-
-    const catRankIdx = RANKS.indexOf(catRankMin[cat]);
+    const catRankIdx = RANKS.indexOf(CAT_RANK_MIN[cat]);
     const isUnlocked = rankIdx >= catRankIdx;
-    const col = catColor[cat];
+    const col = CAT_COLOR[cat];
 
     html += `<div class="rank-divider">
       <div class="rank-divider-line"></div>
@@ -858,157 +602,189 @@ function renderHome() {
     </div>`;
 
     items.forEach((m, i) => {
-      const cleared = p.clearedIds.includes(m.id);
-      const available = isUnlocked;
-      const cls = cleared ? 'cleared' : (available ? 'available' : 'locked');
-      const delay = i * 0.05;
-
-      html += `<div class="mission-item ${cls}" style="animation-delay:${delay}s">
-        <div class="mission-icon-wrap" style="background:${m.color}20">
-          ${missionIconSvg(m.icon, m.color)}
-        </div>
+      const cleared = p.clearedMissionIds.includes(m.missionId);
+      const cls = cleared ? 'cleared' : isUnlocked ? 'available' : 'locked';
+      const icon = ICON_MAP[cat] || 'target';
+      html += `<div class="mission-item ${cls}" style="animation-delay:${i*0.05}s">
+        <div class="mission-icon-wrap" style="background:${col}20">${missionIconSvg(icon, col)}</div>
         <div class="mission-body">
           <div class="mission-name">${m.name}</div>
-          <div class="mission-desc">${m.desc}</div>
+          <div class="mission-desc">${m.description || ''}</div>
         </div>
         <div class="mission-right">
-          <div class="mission-pt">+${m.pt}pt</div>
+          <div class="mission-pt">+${m.points}pt</div>
           ${cleared
             ? `<div class="mission-status-done">✓ クリア済</div>`
-            : available
+            : isUnlocked
               ? `<div style="font-size:10px;color:var(--muted)">未クリア</div>`
-              : `<div class="mission-lock-pill">🔒 ${catRankMin[cat]}以上</div>`}
+              : `<div class="mission-lock-pill">🔒 ${CAT_RANK_MIN[cat]}以上</div>`}
         </div>
       </div>`;
     });
   }
-
-  container.innerHTML = `<div class="sec-label">ミッション一覧</div><div class="missions">${html}</div>`;
+  document.getElementById('screen-home').innerHTML =
+    `<div class="sec-label">ミッション一覧</div><div class="missions">${html}</div>`;
 }
 
-// ── RENDER: BADGES ────────────────────────────────────
+// ── バッジ ────────────────────────────────────────────
+const BADGE_CFG = {
+  beginner: { bg:'#00e5b020',stroke:'#00e5b0',fill:'#00e5b0',label:'初', fc:'#004d3d' },
+  middle:   { bg:'#4da6ff20',stroke:'#4da6ff',fill:'#4da6ff',label:'中', fc:'#0a3060' },
+  advanced: { bg:'#ffb83020',stroke:'#ffb830',fill:'#ffb830',label:'上', fc:'#5a3a00' },
+  expert:   { bg:'#ff6eb020',stroke:'#ff6eb0',fill:'#ff6eb0',label:'EX',fc:'#5a1030' },
+  mission5: { bg:'#4cde8020',stroke:'#4cde80',fill:'#4cde80',label:'×5',fc:'#0a3020' },
+  mission10:{ bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'×10',fc:'#0a3020' },
+  hangar:   { bg:'#7a7f9a20',stroke:'#7a7f9a',fill:'#7a7f9a',label:'H', fc:'#2a2a3a' },
+  fpv:      { bg:'#ff5f5f20',stroke:'#ff5f5f',fill:'#ff5f5f',label:'FPV',fc:'#4a0000' },
+};
+
+function drawBadgeSvg(svgEl, rankKey, size) {
+  const s = size || 60, h = s/2;
+  const c = BADGE_CFG[rankKey] || BADGE_CFG.beginner;
+  const pts = 6, ro = h-3, ri = ro*0.7;
+  let star = '';
+  for (let i = 0; i < pts*2; i++) {
+    const ang = (i*Math.PI/pts) - Math.PI/2;
+    const r = i%2===0 ? ro : ri;
+    star += (i===0?'M':'L') + (h+r*Math.cos(ang)).toFixed(2) + ',' + (h+r*Math.sin(ang)).toFixed(2);
+  }
+  star += 'Z';
+  const fs = ['fpv','mission10'].includes(rankKey) ? Math.floor(s*.16) : Math.floor(s*.2);
+  svgEl.setAttribute('viewBox', `0 0 ${s} ${s}`);
+  svgEl.innerHTML = `<path d="${star}" fill="${c.bg}" stroke="${c.stroke}" stroke-width="1.6"/>
+    <circle cx="${h}" cy="${h}" r="${h*.38}" fill="${c.fill}" opacity="0.25"/>
+    <circle cx="${h}" cy="${h}" r="${h*.28}" fill="${c.fill}" opacity="0.5"/>
+    <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central"
+      font-size="${fs}" font-weight="700" fill="${c.fc}" font-family="'Orbitron',monospace">${c.label}</text>`;
+}
+
+const BADGES = [
+  { id:'bg-beginner', name:'初級認定',    rank:'beginner',  unlock: p => RANKS.indexOf(p.currentLevel) >= 0 },
+  { id:'bg-middle',   name:'中級認定',    rank:'middle',    unlock: p => RANKS.indexOf(p.currentLevel) >= 1 },
+  { id:'bg-advanced', name:'上級認定',    rank:'advanced',  unlock: p => RANKS.indexOf(p.currentLevel) >= 2 },
+  { id:'bg-expert',   name:'エキスパート',rank:'expert',    unlock: p => RANKS.indexOf(p.currentLevel) >= 3 },
+  { id:'bg-m5',       name:'5ミッション', rank:'mission5',  unlock: p => p.clearedMissionIds.length >= 5 },
+  { id:'bg-m10',      name:'10ミッション',rank:'mission10', unlock: p => p.clearedMissionIds.length >= 10 },
+  { id:'bg-hangar',   name:'HANGAR杯',   rank:'hangar',    unlock: () => false },
+  { id:'bg-fpv',      name:'FPVマスター', rank:'fpv',       unlock: p => {
+    const fpvM = STATE.missions.find(m => m.category === 'FPV');
+    return fpvM ? p.clearedMissionIds.includes(fpvM.missionId) : false;
+  }},
+];
 
 function renderBadge() {
   const p = currentPlayer();
-  const rank = ptToRank(p.pt);
-  const rankIdx = RANKS.indexOf(rank);
-
+  if (!p) return;
   let html = '<div class="badge-grid">';
   BADGES.forEach(b => {
-    let unlocked = false;
-    if (typeof b.unlock === 'function') {
-      unlocked = b.unlock(p);
-    } else if (b.unlock === 'never') {
-      unlocked = false;
-    } else {
-      unlocked = RANKS.indexOf(rank) >= RANKS.indexOf(b.unlock);
-    }
-    const lockedCls = unlocked ? '' : ' locked';
-    html += `<div class="badge-cell${lockedCls}">
+    const unlocked = b.unlock(p);
+    html += `<div class="badge-cell${unlocked ? '' : ' locked'}">
       <svg viewBox="0 0 58 58" id="badge-${b.id}"></svg>
       <div class="badge-cell-name">${b.name}</div>
     </div>`;
   });
   html += '</div>';
-
   document.getElementById('screen-badge').innerHTML = `<div class="sec-label">パイロットバッジ</div>${html}`;
-
   BADGES.forEach(b => {
-    const el = document.getElementById('badge-' + b.id);
+    const el = document.getElementById('badge-'+b.id);
     if (el) drawBadgeSvg(el, b.rank, 58);
   });
 }
 
-// ── RENDER: RANKING ───────────────────────────────────
-
+// ── ランキング ────────────────────────────────────────
 function renderRank() {
   const p = currentPlayer();
-  const allRanking = [
-    ...RANKING,
-    { name: p.name + '（自分）', initials: p.name.slice(0,2), pt: p.pt, rank: ptToRank(p.pt), col:'#0a1f3a', tcol:'#4da6ff', isMe: true },
-  ].sort((a,b) => b.pt - a.pt);
+  if (!p) return;
+  // 自分のプレイヤーを含めた仮ランキング（実際はAPI get_display から取得）
+  const combined = [
+    { name:'よしき', level:'advanced', totalPoints:142, isSelf:false },
+    { name:'りなこ', level:'middle',   totalPoints:98,  isSelf:false },
+    { name:'だいき', level:'middle',   totalPoints:76,  isSelf:false },
+    { name:'さくら', level:'middle',   totalPoints:55,  isSelf:false },
+    { name: p.name + '（自分）', level: p.currentLevel, totalPoints: p.totalPoints, isSelf:true },
+  ].sort((a,b) => b.totalPoints - a.totalPoints);
 
   const posClass = ['pos-1','pos-2','pos-3'];
+  const avatarColors = [
+    {bg:'#FAEEDA',tc:'#633806'},{bg:'#1a2a40',tc:'#4da6ff'},{bg:'#2a1a20',tc:'#ff6eb0'},
+    {bg:'#1a2040',tc:'#7a7f9a'},{bg:'#0a1f3a',tc:'#4da6ff'},
+  ];
 
-  let listHtml = '';
-  allRanking.forEach((r, i) => {
-    const pcls = posClass[i] || '';
-    const meCls = r.isMe ? ' me' : '';
-    listHtml += `<div class="rank-row${meCls}">
-      <div class="rank-pos ${pcls}">${i+1}</div>
-      <div class="rank-avatar" style="background:${r.col};color:${r.tcol}">${r.initials}</div>
+  let html = combined.map((r, i) => {
+    const ac = avatarColors[i] || avatarColors[0];
+    return `<div class="rank-row${r.isSelf?' me':''}">
+      <div class="rank-pos ${posClass[i]||''}">${i+1}</div>
+      <div class="rank-avatar" style="background:${ac.bg};color:${ac.tc}">${r.name.charAt(0)}</div>
       <div class="rank-name-col">
         <div class="rank-name">${r.name}</div>
-        <div class="rank-level">${RANK_META[r.rank].label}</div>
+        <div class="rank-level">${RANK_META[r.level]?.label||r.level}</div>
       </div>
-      <div class="rank-pt-col">${r.pt}pt</div>
+      <div class="rank-pt-col">${r.totalPoints}pt</div>
     </div>`;
-  });
+  }).join('');
 
-  const eventsHtml = `
-  <div class="sec-label" style="margin-top:8px">イベント・HANGAR杯</div>
-  <div class="events">
-    <div class="event-card">
+  const eventsHtml = STATE.missions.filter(m => m.isEvent).map(m => {
+    const isOpen = m.eventEnd && new Date(m.eventEnd) >= new Date();
+    return `<div class="event-card">
       <div class="event-head">
-        <div class="event-title">第3回 HANGAR杯</div>
-        <span class="event-pill pill-open">開催中</span>
+        <div class="event-title">${m.name}</div>
+        <span class="event-pill ${isOpen?'pill-open':'pill-close'}">${isOpen?'開催中':'終了'}</span>
       </div>
       <div class="event-body">
-        <div class="event-desc">パノラマ撮影部門 — いちばん綺麗な空撮を競う。締切：2025年4月30日</div>
+        <div class="event-desc">${m.description||''}</div>
+        ${m.eventEnd ? `<div style="font-size:11px;color:var(--muted)">締切：${m.eventEnd}</div>` : ''}
       </div>
-    </div>
-    <div class="event-card">
-      <div class="event-head">
-        <div class="event-title">第2回 HANGAR杯</div>
-        <span class="event-pill pill-close">終了</span>
-      </div>
-      <div class="event-body">
-        <div class="event-desc">FPVタイムアタック 月間最速タイム競技</div>
-        <div class="podium-wrap">
-          <div class="podium-col">
-            <div class="podium-pname">りなこ</div>
-            <div class="podium-bar" style="height:44px;background:#1a2a4080;color:#4da6ff;border:1px solid #4da6ff40">2位</div>
-          </div>
-          <div class="podium-col">
-            <div class="podium-pname">よしき</div>
-            <div class="podium-bar" style="height:62px;background:#ffb83020;color:#ffb830;border:1px solid #ffb83060">1位</div>
-          </div>
-          <div class="podium-col">
-            <div class="podium-pname">だいき</div>
-            <div class="podium-bar" style="height:34px;background:#ff6eb020;color:#ff6eb0;border:1px solid #ff6eb040">3位</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>`;
+    </div>`;
+  }).join('');
 
-  document.getElementById('screen-rank').innerHTML =
-    `<div class="sec-label">今月の総合ランキング</div><div class="rank-list">${listHtml}</div>${eventsHtml}`;
+  document.getElementById('screen-rank').innerHTML = `
+    <div class="sec-label">今月の総合ランキング</div>
+    <div>${html}</div>
+    ${eventsHtml ? `<div class="sec-label" style="margin-top:8px">イベント・HANGAR杯</div><div class="events">${eventsHtml}</div>` : ''}`;
 }
 
-// ── RENDER: SHOP ──────────────────────────────────────
+// ── ショップ ──────────────────────────────────────────
+function shopArtSvg(type, color, stroke) {
+  const arts = {
+    drink:  `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><rect x="16" y="14" width="20" height="26" rx="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><path d="M19 14V10a3 3 0 016 0" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+    sticker:`<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><polygon points="26,8 30,18 42,18 33,25 36,36 26,29 16,36 19,25 10,18 22,18" fill="${color}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+    drone:  `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><rect x="18" y="22" width="16" height="10" rx="3" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="14" cy="20" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="38" cy="20" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="14" cy="34" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="38" cy="34" r="4" fill="${color}" stroke="${stroke}" stroke-width="1.2"/></svg>`,
+    tshirt: `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><path d="M16 14h20l4 8-5 2v14H17V24l-5-2 4-8z" fill="${color}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+    drone2: `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><rect x="17" y="21" width="18" height="12" rx="3" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="13" cy="19" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="39" cy="19" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="13" cy="35" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/><circle cx="39" cy="35" r="5" fill="${color}" stroke="${stroke}" stroke-width="1.2"/></svg>`,
+    hoodie: `<svg viewBox="0 0 52 52" fill="none" style="width:52px;height:52px"><path d="M18 14l-6 8 5 2v14h18V24l5-2-6-8c-2 3-4 4-8 4s-6-1-8-4z" fill="${color}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+  };
+  return (arts[type] || arts.drone);
+}
+
+const ART_COLORS = {
+  drink:  ['#E1F5EE','#1D9E75'], sticker:['#E6F1FB','#4da6ff'],
+  drone:  ['#FAEEDA','#ffb830'], tshirt: ['#FBEAF0','#ff6eb0'],
+  drone2: ['#FAEEDA','#ffb830'], hoodie: ['#FBEAF0','#ff6eb0'],
+};
 
 function renderShop() {
   const p = currentPlayer();
+  if (!p) return;
   let html = `<div class="sec-label">プレゼントショップ</div>
-    <div class="shop-header-bar">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 16px 8px">
       <span style="font-size:12px;color:var(--muted)">ポイントと交換できます</span>
-      <span class="my-pt-disp" id="shopPtDisp">${p.pt}pt 保有</span>
+      <span style="font-family:var(--font-head);font-size:13px;color:var(--amber)">${p.totalPoints}pt 保有</span>
     </div>
     <div class="shop-grid">`;
 
-  SHOP_ITEMS.forEach(item => {
-    const canBuy = p.pt >= item.cost;
+  STATE.shopItems.forEach(item => {
+    const canBuy = p.totalPoints >= item.requiredPoints && (item.stock === null || item.stock > 0);
+    const outOfStock = item.stock !== null && item.stock === 0;
+    const [bg, stroke] = ART_COLORS[item.artType] || ART_COLORS.drone;
     html += `<div class="shop-card">
-      <div class="shop-art" style="background:${item.color}">
-        ${shopArtSvg(item.artType, item.color, item.stroke)}
-      </div>
+      <div class="shop-art" style="background:${bg}20">${shopArtSvg(item.artType, bg, stroke)}</div>
       <div class="shop-body">
         <div class="shop-name">${item.name}</div>
-        <div class="shop-cost">${item.cost}pt</div>
+        <div class="shop-cost">${item.requiredPoints}pt</div>
+        ${item.stock !== null ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">残り${item.stock}個</div>` : ''}
         <button class="shop-btn" ${canBuy ? '' : 'disabled'}
-          onclick="redeemItem('${item.id}',${item.cost},'${item.name}')">
-          ${canBuy ? '交換する' : item.cost + 'pt 必要'}
+          onclick="redeemItem('${item.itemId}',${item.requiredPoints},'${item.name}')">
+          ${outOfStock ? '在庫なし' : canBuy ? '交換する' : item.requiredPoints + 'pt 必要'}
         </button>
       </div>
     </div>`;
@@ -1018,65 +794,31 @@ function renderShop() {
   document.getElementById('screen-shop').innerHTML = html;
 }
 
-// ── INTERACTIONS ──────────────────────────────────────
-
-function switchPlayer(idx) {
-  currentPlayerIdx = idx;
-  document.querySelectorAll('.player-tab').forEach((t,i) => t.classList.toggle('active', i === idx));
-  renderHero();
-  const active = document.querySelector('.screen.active');
-  const id = active ? active.id.replace('screen-','') : 'home';
-  renderScreen(id);
-}
-
-function switchTab(name) {
-  ['home','badge','rank','shop'].forEach(n => {
-    document.getElementById('screen-' + n).classList.toggle('active', n === name);
-    document.getElementById('nb-' + n).classList.toggle('active', n === name);
-  });
-  renderScreen(name);
-}
-
-function renderScreen(name) {
-  if (name === 'home')  renderHome();
-  if (name === 'badge') renderBadge();
-  if (name === 'rank')  renderRank();
-  if (name === 'shop')  renderShop();
-}
-
-function redeemItem(id, cost, name) {
+async function redeemItem(itemId, cost, name) {
   const p = currentPlayer();
-  if (p.pt < cost) return;
-  p.pt -= cost;
-  showToast(`${name} と交換しました`);
-  renderHero();
-  renderShop();
+  if (!p || p.totalPoints < cost) return;
+  try {
+    const res = await apiPost('shop_redeem', {
+      playerId: p.playerId, itemId, pointsUsed: cost,
+    });
+    if (res.error) throw new Error(res.error.message);
+    showToast(res.message || `${name} と交換申請しました`);
+  } catch (e) {
+    showToast(e.message, true);
+  }
 }
 
-function showToast(msg) {
+// ── トースト ──────────────────────────────────────────
+function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  t.className = isError ? 'error show' : 'show';
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-// ── INIT ──────────────────────────────────────────────
-
-function init() {
-  const tabs = document.getElementById('playerTabs');
-  PLAYERS.forEach((p, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'player-tab' + (i === 0 ? ' active' : '');
-    btn.textContent = p.name;
-    btn.onclick = () => switchPlayer(i);
-    tabs.appendChild(btn);
-  });
-
-  renderHero();
-  renderHome();
-}
-
-init();
+// ── 起動 ─────────────────────────────────────────────
+document.getElementById('app').style.visibility = 'hidden';
+boot();
 </script>
 </body>
 </html>
