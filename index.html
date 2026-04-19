@@ -6,6 +6,7 @@
 <title>THE HANGAR — Drone Wonderland</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 :root {
   --bg:#07080f; --bg2:#0d0f1c; --bg3:#13162a; --surface:#1a1e35;
@@ -271,16 +272,8 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
 const API_POST = 'https://prod-12.japaneast.logic.azure.com:443/workflows/aabd58e5133445fd919f56fda0874fd2/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=XQnrcVDi61hN8nBqhcTvSAgUFXgu4ThCY1PVFX8Al4c';
 const API_GET  = 'https://prod-16.japaneast.logic.azure.com:443/workflows/c52fbe515a9d46a5b799eec930242591/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=beXHqRPc12aZ20VZGM_ek0PIS6AQgW5JL7oIlRUFLds';
 
-// SWA の /.auth/me からLINE ユーザー情報を取得
-async function getLineUserId() {
-  try {
-    const res = await fetch('/.auth/me');
-    const data = await res.json();
-    const claims = data?.clientPrincipal?.claims || [];
-    const sub = claims.find(c => c.typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier');
-    return sub?.val || null;
-  } catch { return null; }
-}
+// LIFF ID
+const LIFF_ID = '2009832085-NoI5Q9yY';
 
 // ── アプリ状態 ────────────────────────────────────────
 let STATE = {
@@ -315,7 +308,7 @@ async function apiPost(action, payload) {
 
 async function apiGet(action, params = {}) {
   const qs = new URLSearchParams({ action, ...params }).toString();
-  const res = await fetch(`${API_GET}?${qs}`);
+  const res = await fetch(`${API_GET}&${qs}`);
   return res.json();
 }
 
@@ -323,18 +316,22 @@ async function apiGet(action, params = {}) {
 async function boot() {
   setLoading('LINE認証を確認中...');
   try {
-    // LINE ログイン確認
-    const lineUserId = await getLineUserId();
-    if (!lineUserId) {
-      // 未認証 → LINEログインへリダイレクト
-      window.location.href = '/.auth/login/line?post_login_redirect_uri=/';
+    // LIFF 初期化
+    await liff.init({ liffId: LIFF_ID });
+
+    // 未ログインならLINEログインへ
+    if (!liff.isLoggedIn()) {
+      liff.login({ redirectUri: location.href });
       return;
     }
-    STATE.lineUserId = lineUserId;
+
+    // LINEユーザーID取得
+    const profile = await liff.getProfile();
+    STATE.lineUserId = profile.userId;
 
     // auth_session
     setLoading('アカウントを確認中...');
-    const authRes = await apiPost('auth_session', { lineUserId });
+    const authRes = await apiPost('auth_session', { lineUserId: STATE.lineUserId });
     if (authRes.error) throw new Error(authRes.error.message);
     STATE.accountId = authRes.accountId;
 

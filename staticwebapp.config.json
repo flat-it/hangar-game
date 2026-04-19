@@ -2,38 +2,7 @@
   "$schema": "https://json.schemastore.org/staticwebapp.config.json",
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": [
-      "/api/*",
-      "/.auth/*",
-      "/*.{css,js,png,svg,ico,json}"
-    ]
-  },
-  "routes": [
-    {
-      "route": "/login",
-      "rewrite": "/.auth/login/line"
-    }
-  ],
-  "auth": {
-    "identityProviders": {
-      "customOpenIdConnectProviders": {
-        "line": {
-          "registration": {
-            "clientIdSettingName": "LINE_CHANNEL_ID",
-            "clientCredential": {
-              "clientSecretSettingName": "LINE_CHANNEL_SECRET"
-            },
-            "openIdConnectConfiguration": {
-              "wellKnownOpenIdConfiguration": "https://access.line.me/.well-known/openid-configuration"
-            }
-          },
-          "login": {
-            "nameClaimType": "name",
-            "scopes": ["openid", "profile"]
-          }
-        }
-      }
-    }
+    "exclude": ["/*.{css,js,png,svg,ico,json}"]
   },
   "globalHeaders": {
     "Cache-Control": "no-cache",
