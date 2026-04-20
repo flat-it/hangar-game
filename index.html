@@ -589,7 +589,12 @@ function renderPlayerTabs() {
   const canAdd = STATE.players.length < 3;
   tabs.innerHTML = STATE.players.map((p, i) =>
     `<button class="player-tab ${i === STATE.currentPlayerIdx ? 'active' : ''}"
-      onclick="switchPlayer(${i})">${p.name}</button>`
+      onclick="switchPlayer(${i})"
+      oncontextmenu="event.preventDefault();openEditPlayer('${p.playerId}')"
+      ontouchstart="startLongPress('${p.playerId}',event)"
+      ontouchend="cancelLongPress()"
+      ontouchmove="cancelLongPress()"
+      title="${p.name}（長押しで編集）">${p.name}</button>`
   ).join('') + (canAdd
     ? `<button class="player-tab-add" onclick="openAddPlayer()" title="パイロットを追加">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -598,6 +603,18 @@ function renderPlayerTabs() {
         </svg>
       </button>`
     : '');
+}
+
+// 長押し検出（スマートフォン用）
+let longPressTimer = null;
+function startLongPress(playerId, e) {
+  cancelLongPress();
+  longPressTimer = setTimeout(() => {
+    openEditPlayer(playerId);
+  }, 600);
+}
+function cancelLongPress() {
+  if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 }
 
 function switchPlayer(idx) {
