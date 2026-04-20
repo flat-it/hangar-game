@@ -193,6 +193,32 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
 .mission-clear-btn.qr:hover{background:rgba(77,166,255,.25)}
 .mission-clear-btn.staff{border-color:var(--amber);background:var(--amber-dim);color:var(--amber)}
 .mission-clear-btn.staff:hover{background:rgba(255,184,48,.25)}
+
+/* MISSION DETAIL MODAL */
+.mission-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+.mission-detail-overlay.hidden{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.mission-detail-sheet{background:var(--bg2);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:var(--maxw);max-height:88dvh;overflow-y:auto;border-top:1px solid var(--border);animation:slideUp .25s ease}
+.mission-detail-img{width:100%;max-height:200px;object-fit:cover;display:block}
+.mission-detail-img-placeholder{height:120px;display:flex;align-items:center;justify-content:center;background:var(--bg3)}
+.mission-detail-body{padding:20px 16px 32px}
+.mission-detail-cat{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10px;font-family:var(--font-head);letter-spacing:.06em;margin-bottom:10px}
+.mission-detail-name{font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3}
+.mission-detail-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px}
+.mission-detail-meta{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.mission-detail-meta-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;flex:1;min-width:80px}
+.mission-detail-meta-label{font-size:10px;color:var(--muted);margin-bottom:3px}
+.mission-detail-meta-value{font-family:var(--font-head);font-size:14px;font-weight:600}
+.mission-detail-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:none;color:var(--muted);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1}
+.mission-detail-header{position:relative}
+.mission-detail-action-btn{width:100%;padding:14px;border-radius:var(--r-md);font-family:var(--font-head);font-size:13px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:all .15s;border:1px solid}
+.mission-detail-action-btn.auto{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.mission-detail-action-btn.auto:hover{background:rgba(0,229,176,.25)}
+.mission-detail-action-btn.qr{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.mission-detail-action-btn.qr:hover{background:rgba(77,166,255,.25)}
+.mission-detail-action-btn.staff{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+.mission-detail-action-btn.staff:hover{background:rgba(255,184,48,.25)}
+.mission-detail-cleared{width:100%;padding:14px;border-radius:var(--r-md);background:rgba(0,229,176,.08);border:1px solid var(--teal);color:var(--teal);font-family:var(--font-head);font-size:13px;font-weight:600;text-align:center}
 </style>
 </head>
 <body>
@@ -270,6 +296,36 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
       </select>
     </div>
     <button class="btn-primary" id="playerSaveBtn" onclick="savePlayer()">登録する</button>
+  </div>
+</div>
+
+<!-- ミッション詳細モーダル -->
+<div class="mission-detail-overlay hidden" id="missionDetailModal">
+  <div class="mission-detail-sheet">
+    <div class="mission-detail-header">
+      <button class="mission-detail-close" onclick="closeMissionDetail()">×</button>
+      <div id="missionDetailImgArea"></div>
+    </div>
+    <div class="mission-detail-body">
+      <div id="missionDetailCat" class="mission-detail-cat"></div>
+      <div id="missionDetailName" class="mission-detail-name"></div>
+      <div id="missionDetailDesc" class="mission-detail-desc"></div>
+      <div class="mission-detail-meta">
+        <div class="mission-detail-meta-item">
+          <div class="mission-detail-meta-label">獲得ポイント</div>
+          <div class="mission-detail-meta-value" id="missionDetailPt" style="color:var(--amber)"></div>
+        </div>
+        <div class="mission-detail-meta-item">
+          <div class="mission-detail-meta-label">難易度</div>
+          <div class="mission-detail-meta-value" id="missionDetailRank"></div>
+        </div>
+        <div class="mission-detail-meta-item">
+          <div class="mission-detail-meta-label">クリア方式</div>
+          <div class="mission-detail-meta-value" id="missionDetailMethod"></div>
+        </div>
+      </div>
+      <div id="missionDetailAction"></div>
+    </div>
   </div>
 </div>
 
@@ -625,32 +681,20 @@ function renderHome() {
       const cleared = p.clearedMissionIds.includes(m.missionId);
       const cls = cleared ? 'cleared' : isUnlocked ? 'available' : 'locked';
       const icon = ICON_MAP[cat] || 'target';
-
-      // クリアボタンの表示制御
-      let actionBtn = '';
-      if (!cleared && isUnlocked) {
-        if (m.clearMethod === 'auto') {
-          actionBtn = `<button class="mission-clear-btn" onclick="clearMissionAuto('${m.missionId}','${p.playerId}')">クリア！</button>`;
-        } else if (m.clearMethod === 'qr') {
-          actionBtn = `<button class="mission-clear-btn qr" onclick="openQrScan('${m.missionId}','${p.playerId}','${m.qrCode||m.missionId}')">QRスキャン</button>`;
-        } else if (m.clearMethod === 'staff') {
-          actionBtn = `<button class="mission-clear-btn staff" onclick="clearMissionStaff('${m.missionId}','${p.playerId}')">申請する</button>`;
-        }
-      }
-
-      html += `<div class="mission-item ${cls}" style="animation-delay:${i*0.05}s">
+      // ミッションIDをdata属性で持たせてタップで詳細表示
+      html += `<div class="mission-item ${cls}" style="animation-delay:${i*0.05}s;cursor:pointer"
+        onclick="openMissionDetail('${m.missionId}')">
         <div class="mission-icon-wrap" style="background:${col}20">${missionIconSvg(icon, col)}</div>
         <div class="mission-body">
           <div class="mission-name">${m.name}</div>
           <div class="mission-desc">${m.description || ''}</div>
-          ${actionBtn}
         </div>
         <div class="mission-right">
           <div class="mission-pt">+${m.points}pt</div>
           ${cleared
             ? `<div class="mission-status-done">✓ クリア済</div>`
             : isUnlocked
-              ? `<div style="font-size:10px;color:var(--muted)">未クリア</div>`
+              ? `<div style="font-size:10px;color:var(--blue)">タップで詳細</div>`
               : `<div class="mission-lock-pill">🔒 ${CAT_RANK_MIN[cat]}以上</div>`}
         </div>
       </div>`;
@@ -658,6 +702,68 @@ function renderHome() {
   }
   document.getElementById('screen-home').innerHTML =
     `<div class="sec-label">ミッション一覧</div><div class="missions">${html}</div>`;
+}
+
+// ── ミッション詳細モーダル ────────────────────────────
+function openMissionDetail(missionId) {
+  const m = STATE.missions.find(x => x.missionId === missionId);
+  const p = currentPlayer();
+  if (!m || !p) return;
+
+  const cleared = p.clearedMissionIds.includes(missionId);
+  const rankIdx = RANKS.indexOf(p.currentLevel);
+  const catRankIdx = RANKS.indexOf(CAT_RANK_MIN[m.category] || 'beginner');
+  const isUnlocked = rankIdx >= catRankIdx;
+  const col = CAT_COLOR[m.category] || 'var(--teal)';
+
+  // カテゴリバッジ
+  document.getElementById('missionDetailCat').textContent = m.category;
+  document.getElementById('missionDetailCat').style.cssText =
+    `background:${col}20;border:1px solid ${col}40;color:${col}`;
+
+  // 名前・説明
+  document.getElementById('missionDetailName').textContent = m.name;
+  document.getElementById('missionDetailDesc').textContent = m.description || '';
+
+  // メタ情報
+  document.getElementById('missionDetailPt').textContent = `+${m.points}pt`;
+  const rankLabels = { beginner:'初級〜', middle:'中級〜', advanced:'上級〜', expert:'エキスパ〜' };
+  document.getElementById('missionDetailRank').textContent = rankLabels[m.requiredRank] || m.requiredRank;
+  const methodLabels = { auto:'タップ', qr:'QRコード', staff:'スタッフ確認' };
+  document.getElementById('missionDetailMethod').textContent = methodLabels[m.clearMethod] || m.clearMethod;
+
+  // 画像エリア（imageUrl があれば表示、なければアイコン）
+  const imgArea = document.getElementById('missionDetailImgArea');
+  if (m.imageUrl) {
+    imgArea.innerHTML = `<img src="${m.imageUrl}" class="mission-detail-img" alt="${m.name}" onerror="this.parentNode.innerHTML='${buildImgPlaceholder(col, m.category)}'">`;
+  } else {
+    imgArea.innerHTML = buildImgPlaceholder(col, m.category);
+  }
+
+  // アクションボタン
+  const actionEl = document.getElementById('missionDetailAction');
+  if (cleared) {
+    actionEl.innerHTML = `<div class="mission-detail-cleared">✓ クリア済み</div>`;
+  } else if (!isUnlocked) {
+    actionEl.innerHTML = `<div style="text-align:center;font-size:12px;color:var(--muted);padding:12px 0">🔒 ${rankLabels[m.requiredRank]}のランクが必要です</div>`;
+  } else if (m.clearMethod === 'auto') {
+    actionEl.innerHTML = `<button class="mission-detail-action-btn auto" onclick="closeMissionDetail();clearMissionAuto('${missionId}','${p.playerId}')">クリア！</button>`;
+  } else if (m.clearMethod === 'qr') {
+    actionEl.innerHTML = `<button class="mission-detail-action-btn qr" onclick="closeMissionDetail();openQrScan('${missionId}','${p.playerId}','${m.qrCode||missionId}')">QRコードをスキャン</button>`;
+  } else if (m.clearMethod === 'staff') {
+    actionEl.innerHTML = `<button class="mission-detail-action-btn staff" onclick="closeMissionDetail();clearMissionStaff('${missionId}','${p.playerId}')">クリアを申請する</button>`;
+  }
+
+  document.getElementById('missionDetailModal').classList.remove('hidden');
+}
+
+function buildImgPlaceholder(col, cat) {
+  const icon = ICON_MAP[cat] || 'target';
+  return `<div class="mission-detail-img-placeholder">${missionIconSvg(icon, col).replace('width:22px;height:22px','width:56px;height:56px')}</div>`;
+}
+
+function closeMissionDetail() {
+  document.getElementById('missionDetailModal').classList.add('hidden');
 }
 
 // ── ミッションクリア処理 ──────────────────────────────
