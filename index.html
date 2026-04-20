@@ -34,6 +34,8 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
 .player-tabs{display:flex;gap:6px}
 .player-tab{padding:4px 10px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:12px;cursor:pointer;transition:all .18s;white-space:nowrap}
 .player-tab.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.player-tab-add{width:28px;height:28px;border-radius:50%;border:1px dashed var(--border2);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;flex-shrink:0}
+.player-tab-add:hover{border-color:var(--teal);color:var(--teal)}
 
 /* HERO */
 #hero{background:var(--bg2);padding:14px 16px 16px;border-bottom:1px solid var(--border)}
@@ -584,10 +586,18 @@ function initMainApp() {
 // ── プレイヤータブ ─────────────────────────────────────
 function renderPlayerTabs() {
   const tabs = document.getElementById('playerTabs');
+  const canAdd = STATE.players.length < 3;
   tabs.innerHTML = STATE.players.map((p, i) =>
     `<button class="player-tab ${i === STATE.currentPlayerIdx ? 'active' : ''}"
       onclick="switchPlayer(${i})">${p.name}</button>`
-  ).join('');
+  ).join('') + (canAdd
+    ? `<button class="player-tab-add" onclick="openAddPlayer()" title="パイロットを追加">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>`
+    : '');
 }
 
 function switchPlayer(idx) {
