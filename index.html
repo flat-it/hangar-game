@@ -783,7 +783,7 @@ async function clearMission(missionId, playerId, evidenceType, evidenceData) {
     const p = STATE.players.find(x => x.playerId === playerId);
     if (p && res.status === 'cleared') {
       p.clearedMissionIds.push(missionId);
-      p.totalPoints += (res.pointsEarned || 0);
+      p.totalPoints = Number(p.totalPoints) + Number(res.pointsEarned || 0);
     }
 
     renderHero();
