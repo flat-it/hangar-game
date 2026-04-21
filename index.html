@@ -706,9 +706,19 @@ function openMissionDetail(missionId) {
 
   // 画像
   const imgArea = document.getElementById('missionDetailImgArea');
-  imgArea.innerHTML = m.imageUrl
-    ? `<img src="${m.imageUrl}" class="mission-detail-img" alt="${m.name}" onerror="this.parentNode.innerHTML='<div class=mission-detail-img-placeholder>${missionIconSvg(ICON_MAP[m.category]||'target',col).replace('width:24px;height:24px','width:60px;height:60px')}</div>'">`
-    : `<div class="mission-detail-img-placeholder">${missionIconSvg(ICON_MAP[m.category]||'target', col).replace('width:24px;height:24px','width:60px;height:60px')}</div>`;
+  if (m.imageUrl) {
+    const img = document.createElement('img');
+    img.src = m.imageUrl;
+    img.className = 'mission-detail-img';
+    img.alt = m.name;
+    img.onerror = function() {
+      this.parentNode.innerHTML = `<div class="mission-detail-img-placeholder">${missionIconSvg(ICON_MAP[m.category]||'target', col).replace('width:24px;height:24px','width:60px;height:60px')}</div>`;
+    };
+    imgArea.innerHTML = '';
+    imgArea.appendChild(img);
+  } else {
+    imgArea.innerHTML = `<div class="mission-detail-img-placeholder">${missionIconSvg(ICON_MAP[m.category]||'target', col).replace('width:24px;height:24px','width:60px;height:60px')}</div>`;
+  }
 
   // アクションボタン
   const actionEl = document.getElementById('missionDetailAction');
