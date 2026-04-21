@@ -730,8 +730,10 @@ function closeMissionDetail() { document.getElementById('missionDetailModal').cl
 // ── ミッションクリア ──────────────────────────────────
 async function clearMission(missionId, playerId, evidenceType, evidenceData) {
   try {
+    const m = STATE.missions.find(x => x.missionId === missionId);
     const res = await apiPost('mission_clear', {
       playerId, missionId, accountId: STATE.accountId,
+      clearMethod: m?.clearMethod || 'auto',
       evidenceType, evidenceData, clearedAt: new Date().toISOString(),
     });
     if (res.error) throw new Error(res.error.message);
