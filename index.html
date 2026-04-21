@@ -348,7 +348,7 @@ const RANK_META = {
 // カテゴリ設定
 const CAT_COLOR   = { '初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0','ポイントミッション':'#b07aff','イベント':'#4cde80' };
 const CAT_RANK_MIN= { '初級':'beginner','中級':'middle','上級':'advanced','FPV':'advanced','HANGAR杯':'expert','ポイントミッション':null,'イベント':null };
-const ICON_MAP    = { '初級':'target','中級':'camera','上級':'panorama','FPV':'fpv','HANGAR杯':'trophy','ポイントミッション':'star','イベント':'event' };
+const ICON_MAP    = { '初級':'target','中級':'soccer','上級':'camera','FPV':'eye','HANGAR杯':'trophy','ポイントミッション':'coin','イベント':'tent' };
 
 // イベントバッジ訓練ポイント閾値
 const EVENT_BADGE_TP = 50;
@@ -593,20 +593,33 @@ function renderScreen(name) {
 // ── ミッションアイコン ────────────────────────────────
 function missionIconSvg(type, color) {
   const icons = {
+    // 初級：的当てターゲット
     target:  `<circle cx="12" cy="12" r="9" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="5" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2" fill="${color}"/>`,
+    // 中級：サッカーボール
+    soccer:  `<circle cx="12" cy="12" r="9" stroke="${color}" stroke-width="1.4" fill="none"/>
+              <path d="M12 3Q15 6 14 10L10 11Q7 9 8 5Q10 3 12 3Z" stroke="${color}" stroke-width="1" fill="${color}30"/>
+              <path d="M21 10Q20 14 17 15L14 12Q15 8 19 7Q21 8 21 10Z" stroke="${color}" stroke-width="1" fill="${color}30"/>
+              <path d="M17 19Q14 21 11 20L11 16Q14 14 17 16Q18 17 17 19Z" stroke="${color}" stroke-width="1" fill="${color}30"/>
+              <path d="M7 20Q4 18 4 15L7 13Q10 14 11 17Q10 19 7 20Z" stroke="${color}" stroke-width="1" fill="${color}30"/>
+              <path d="M3 9Q4 6 7 5L10 8Q9 12 6 12Q4 11 3 9Z" stroke="${color}" stroke-width="1" fill="${color}30"/>`,
+    // 上級：カメラ
     camera:  `<rect x="3" y="7" width="18" height="13" rx="2" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="13" r="3.5" stroke="${color}" stroke-width="1.4" fill="none"/><path d="M9 7V5h6v2" stroke="${color}" stroke-width="1.4" stroke-linejoin="round"/>`,
-    panorama:`<path d="M3 12Q6 7 12 7Q18 7 21 12Q18 17 12 17Q6 17 3 12Z" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="3" fill="${color}"/>`,
-    fpv:     `<path d="M12 3L21 8v5l-9 5-9-5V8L12 3z" stroke="${color}" stroke-width="1.4" fill="${color}20" stroke-linejoin="round"/><circle cx="12" cy="11" r="2.5" fill="${color}"/>`,
+    // FPV：目玉アイコン
+    eye:     `<path d="M3 12Q6 5 12 5Q18 5 21 12Q18 19 12 19Q6 19 3 12Z" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="3.5" stroke="${color}" stroke-width="1.4" fill="${color}30"/><circle cx="12" cy="12" r="1.5" fill="${color}"/>`,
+    // HANGAR杯：トロフィー
     trophy:  `<path d="M8 2h8v8a4 4 0 01-8 0V2z" stroke="${color}" stroke-width="1.4" fill="${color}20"/><path d="M4 4H8M20 4h-4" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/><path d="M12 14v4M8 21h8" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/>`,
-    star:    `<polygon points="12,2 15,9 22,9 16.5,13.5 18.5,21 12,16.5 5.5,21 7.5,13.5 2,9 9,9" stroke="${color}" stroke-width="1.4" fill="${color}20" stroke-linejoin="round"/>`,
-    event:   `<rect x="3" y="4" width="18" height="17" rx="2" stroke="${color}" stroke-width="1.4" fill="none"/><path d="M3 9h18" stroke="${color}" stroke-width="1.4"/><path d="M8 2v4M16 2v4" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/><circle cx="12" cy="14" r="2.5" fill="${color}"/>`,
+    // ポイントミッション：コイン（円マーク）
+    coin:    `<circle cx="12" cy="12" r="9" stroke="${color}" stroke-width="1.4" fill="${color}15"/><text x="12" y="17" text-anchor="middle" font-size="11" font-weight="700" fill="${color}" font-family="sans-serif">¥</text>`,
+    // イベント：屋台テント
+    tent:    `<path d="M2 18L7 6L12 10L17 6L22 18Z" stroke="${color}" stroke-width="1.4" fill="${color}20" stroke-linejoin="round"/><path d="M2 18h20" stroke="${color}" stroke-width="1.4" stroke-linecap="round"/><path d="M9 18v-5h6v5" stroke="${color}" stroke-width="1.4" stroke-linejoin="round"/><path d="M7 6v2M17 6v2" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/>`,
   };
   return `<svg viewBox="0 0 24 24" fill="none" style="width:24px;height:24px">${icons[type] || icons.target}</svg>`;
 }
 
 // ── ホーム ────────────────────────────────────────────
 function isEventVisible(m) {
-  if (!m.isEvent) return true;
+  // イベントカテゴリ以外は常に表示
+  if (m.category !== 'イベント') return true;
   const now = new Date();
   const start = m.eventStart ? new Date(m.eventStart) : null;
   const end   = m.eventEnd   ? new Date(m.eventEnd)   : null;
@@ -681,15 +694,13 @@ function openMissionDetail(missionId) {
   document.getElementById('missionDetailName').textContent = m.name;
   document.getElementById('missionDetailDesc').textContent = m.description || '';
 
-  // メタ情報
+  // メタ情報（訓練ポイントは0でも常に表示）
   const rankLabels   = { beginner:'初級〜', middle:'中級〜', advanced:'上級〜', expert:'エキスパ〜' };
   const methodLabels = { auto:'タップ確認', qr:'QRコード', staff:'スタッフ確認' };
-  const tpMeta = m.trainingPoints > 0
-    ? `<div class="mission-detail-meta-item"><div class="mission-detail-meta-label">訓練ポイント</div><div class="mission-detail-meta-value" style="color:var(--teal)">+${m.trainingPoints}tp</div></div>`
-    : '';
+  const tp = Number(m.trainingPoints || 0);
   document.getElementById('missionDetailMeta').innerHTML = `
     <div class="mission-detail-meta-item"><div class="mission-detail-meta-label">獲得ポイント</div><div class="mission-detail-meta-value" style="color:var(--amber)">+${m.points}pt</div></div>
-    ${tpMeta}
+    <div class="mission-detail-meta-item"><div class="mission-detail-meta-label">訓練ポイント</div><div class="mission-detail-meta-value" style="color:${tp > 0 ? 'var(--teal)' : 'var(--muted)'}">${tp > 0 ? '+' + tp + 'tp' : 'なし'}</div></div>
     <div class="mission-detail-meta-item"><div class="mission-detail-meta-label">クリア方式</div><div class="mission-detail-meta-value">${methodLabels[m.clearMethod] || m.clearMethod}</div></div>
     ${minRank ? `<div class="mission-detail-meta-item"><div class="mission-detail-meta-label">必要ランク</div><div class="mission-detail-meta-value">${rankLabels[minRank] || ''}</div></div>` : ''}`;
 
