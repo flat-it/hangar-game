@@ -346,9 +346,12 @@ const RANK_META = {
 };
 
 // カテゴリ設定
-const CAT_COLOR   = { '初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0','ポイントミッション':'#b07aff','イベント':'#4cde80' };
-const CAT_RANK_MIN= { '初級':'beginner','中級':'middle','上級':'advanced','FPV':'advanced','HANGAR杯':'expert','ポイントミッション':null,'イベント':null };
-const ICON_MAP    = { '初級':'target','中級':'soccer','上級':'camera','FPV':'eye','HANGAR杯':'trophy','ポイントミッション':'coin','イベント':'tent' };
+const CAT_COLOR   = { 'エントリー':'#ffffff','初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0','ポイントミッション':'#b07aff','イベント':'#4cde80' };
+const CAT_RANK_MIN= { 'エントリー':null,'初級':'beginner','中級':'middle','上級':'advanced','FPV':'advanced','HANGAR杯':null,'ポイントミッション':null,'イベント':null };
+const ICON_MAP    = { 'エントリー':'entry','初級':'target','中級':'soccer','上級':'camera','FPV':'eye','HANGAR杯':'trophy','ポイントミッション':'coin','イベント':'tent' };
+
+// ── カテゴリIDマップ（ページ内ジャンプ用） ────────────
+const CAT_JUMP = ['中級','上級','FPV','HANGAR杯','ポイントミッション','イベント'];
 
 // イベントバッジ訓練ポイント閾値
 const EVENT_BADGE_TP = 50;
@@ -593,6 +596,8 @@ function renderScreen(name) {
 // ── ミッションアイコン ────────────────────────────────
 function missionIconSvg(type, color) {
   const icons = {
+    // エントリー：ドア（入口）
+    entry:   `<rect x="5" y="3" width="14" height="18" rx="2" stroke="${color}" stroke-width="1.4" fill="${color}15"/><rect x="9" y="3" width="10" height="18" rx="2" stroke="${color}" stroke-width="1.4" fill="${color}30"/><circle cx="17" cy="12" r="1.2" fill="${color}"/><path d="M12 12h-4M10 10l-2 2 2 2" stroke="${color}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>`,
     // 初級：的当てターゲット
     target:  `<circle cx="12" cy="12" r="9" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="5" stroke="${color}" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2" fill="${color}"/>`,
     // 中級：サッカーボール
@@ -618,8 +623,8 @@ function missionIconSvg(type, color) {
 
 // ── ホーム ────────────────────────────────────────────
 function isEventVisible(m) {
-  // イベントカテゴリ以外は常に表示
   if (m.category !== 'イベント') return true;
+  if (!m.isEvent) return false;
   const now = new Date();
   const start = m.eventStart ? new Date(m.eventStart) : null;
   const end   = m.eventEnd   ? new Date(m.eventEnd)   : null;
@@ -628,32 +633,112 @@ function isEventVisible(m) {
   return true;
 }
 
+// ── ミッションのロック判定 ─────────────────────────────
+function getMissionLockStatus(m, p) {
+  const rankIdx  = RANKS.indexOf(p.currentLevel);
+  const minRank  = CAT_RANK_MIN[m.category];
+  const rankOk   = !minRank || rankIdx >= RANKS.indexOf(minRank);
+  const cleared  = p.clearedMissionIds.includes(m.missionId);
+  const cat      = m.category;
+  const sortNo   = Number(m.sortOrder || 1);
+
+  // エントリー：常に開放
+  if (cat === 'エントリー') {
+    return { unlocked: true, lockReason: null };
+  }
+
+  // イベント：期間内+isEvent+ランク
+  if (cat === 'イベント') {
+    if (!rankOk) return { unlocked: false, lockReason: `rank:${minRank}` };
+    return { unlocked: true, lockReason: null };
+  }
+
+  // ポイントミッション・HANGAR杯：ランクのみ
+  if (cat === 'ポイントミッション' || cat === 'HANGAR杯') {
+    if (!rankOk) return { unlocked: false, lockReason: `rank:${minRank}` };
+    return { unlocked: true, lockReason: null };
+  }
+
+  // 初級・中級・上級・FPV
+  if (['初級','中級','上級','FPV'].includes(cat)) {
+    // ランクチェック
+    if (!rankOk) return { unlocked: false, lockReason: `rank:${minRank}` };
+
+    // No1：エントリーのNo1クリア済みが必要
+    if (sortNo === 1) {
+      const entryNo1 = STATE.missions.find(x => x.category === 'エントリー' && Number(x.sortOrder || 1) === 1);
+      if (entryNo1 && !p.clearedMissionIds.includes(entryNo1.missionId)) {
+        return { unlocked: false, lockReason: 'entry' };
+      }
+      return { unlocked: true, lockReason: null };
+    }
+
+    // No2以降：同カテゴリのNo1クリア済みが必要
+    const catNo1 = STATE.missions.find(x => x.category === cat && Number(x.sortOrder || 1) === 1);
+    if (catNo1 && !p.clearedMissionIds.includes(catNo1.missionId)) {
+      return { unlocked: false, lockReason: `cat1:${cat}` };
+    }
+    return { unlocked: true, lockReason: null };
+  }
+
+  return { unlocked: true, lockReason: null };
+}
+
+function lockLabel(lockReason, m) {
+  if (!lockReason) return '';
+  if (lockReason.startsWith('rank:')) {
+    const rank = lockReason.split(':')[1];
+    return `🔒 ${RANK_META[rank]?.label || rank}〜`;
+  }
+  if (lockReason === 'entry') return '🔒 エントリー完了後';
+  if (lockReason.startsWith('cat1:')) {
+    const cat = lockReason.split(':')[1];
+    return `🔒 ${cat}No.1クリア後`;
+  }
+  return '🔒';
+}
+
 function renderHome() {
   const p = currentPlayer();
   if (!p) return;
-  const rankIdx = RANKS.indexOf(p.currentLevel);
-  const cats = ['初級','中級','上級','FPV','HANGAR杯','ポイントミッション','イベント'];
-  let html = '';
+  const cats = ['エントリー','初級','中級','上級','FPV','HANGAR杯','ポイントミッション','イベント'];
+
+  // ジャンプボタン（表示対象カテゴリのうち実際にミッションがあるもの）
+  const jumpCats = CAT_JUMP.filter(cat =>
+    STATE.missions.some(m => m.category === cat && isEventVisible(m))
+  );
+  const jumpHtml = jumpCats.length ? `
+    <div style="display:flex;gap:8px;overflow-x:auto;padding:8px 12px 4px;scrollbar-width:none">
+      ${jumpCats.map(cat => {
+        const col = CAT_COLOR[cat] || '#7a82a8';
+        return `<button onclick="document.getElementById('cat-${cat}').scrollIntoView({behavior:'smooth',block:'start'})"
+          style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid ${col}60;background:${col}15;color:${col};font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--font-body)">${cat}</button>`;
+      }).join('')}
+    </div>` : '';
+
+  let html = jumpHtml;
 
   for (const cat of cats) {
     const items = STATE.missions.filter(m => m.category === cat && isEventVisible(m));
     if (!items.length) continue;
-    const minRank = CAT_RANK_MIN[cat];
-    const catRankIdx = minRank ? RANKS.indexOf(minRank) : -1;
-    const isUnlocked = catRankIdx < 0 || rankIdx >= catRankIdx;
     const col = CAT_COLOR[cat] || '#7a82a8';
+    const icon = ICON_MAP[cat] || 'target';
 
-    html += `<div class="rank-divider">
+    html += `<div class="rank-divider" id="cat-${cat}">
       <div class="rank-divider-line"></div>
       <div class="rank-divider-label" style="color:${col}">${cat}</div>
       <div class="rank-divider-line"></div>
     </div>`;
 
-    items.forEach((m, i) => {
+    // sortOrderでソート
+    const sorted = [...items].sort((a, b) => Number(a.sortOrder || 99) - Number(b.sortOrder || 99));
+
+    sorted.forEach((m, i) => {
       const cleared = p.clearedMissionIds.includes(m.missionId);
-      const cls = cleared ? 'cleared' : isUnlocked ? 'available' : 'locked';
-      const icon = ICON_MAP[cat] || 'target';
-      const tpLabel = m.trainingPoints > 0 ? `<div class="mission-tp">+${m.trainingPoints}tp</div>` : '';
+      const { unlocked, lockReason } = getMissionLockStatus(m, p);
+      const cls = cleared ? 'cleared' : unlocked ? 'available' : 'locked';
+      const tp = Number(m.trainingPoints || 0);
+      const tpLabel = tp > 0 ? `<div class="mission-tp">+${tp}tp</div>` : '';
       html += `<div class="mission-item ${cls}" style="animation-delay:${i*0.04}s" onclick="openMissionDetail('${m.missionId}')">
         <div class="mission-icon-wrap" style="background:${col}20">${missionIconSvg(icon, col)}</div>
         <div class="mission-body">
@@ -665,9 +750,9 @@ function renderHome() {
           ${tpLabel}
           ${cleared
             ? `<div class="mission-status-done">✓ クリア済</div>`
-            : isUnlocked
+            : unlocked
               ? `<div style="font-size:11px;color:var(--blue)">▶ 詳細</div>`
-              : `<div class="mission-lock-pill">🔒 ${minRank ? RANK_META[minRank]?.label : ''}〜</div>`}
+              : `<div class="mission-lock-pill">${lockLabel(lockReason, m)}</div>`}
         </div>
       </div>`;
     });
@@ -683,10 +768,8 @@ function openMissionDetail(missionId) {
   if (!m || !p) return;
 
   const cleared = p.clearedMissionIds.includes(missionId);
-  const rankIdx = RANKS.indexOf(p.currentLevel);
+  const { unlocked, lockReason } = getMissionLockStatus(m, p);
   const minRank = CAT_RANK_MIN[m.category];
-  const catRankIdx = minRank ? RANKS.indexOf(minRank) : -1;
-  const isUnlocked = catRankIdx < 0 || rankIdx >= catRankIdx;
   const col = CAT_COLOR[m.category] || '#7a82a8';
 
   document.getElementById('missionDetailCat').textContent = m.category;
@@ -706,26 +789,16 @@ function openMissionDetail(missionId) {
 
   // 画像
   const imgArea = document.getElementById('missionDetailImgArea');
-  if (m.imageUrl) {
-    const img = document.createElement('img');
-    img.src = m.imageUrl;
-    img.className = 'mission-detail-img';
-    img.alt = m.name;
-    img.onerror = function() {
-      this.parentNode.innerHTML = `<div class="mission-detail-img-placeholder">${missionIconSvg(ICON_MAP[m.category]||'target', col).replace('width:24px;height:24px','width:60px;height:60px')}</div>`;
-    };
-    imgArea.innerHTML = '';
-    imgArea.appendChild(img);
-  } else {
-    imgArea.innerHTML = `<div class="mission-detail-img-placeholder">${missionIconSvg(ICON_MAP[m.category]||'target', col).replace('width:24px;height:24px','width:60px;height:60px')}</div>`;
-  }
+  imgArea.innerHTML = m.imageUrl
+    ? `<img src="${m.imageUrl}" class="mission-detail-img" alt="${m.name}" onerror="this.parentNode.innerHTML='<div class=mission-detail-img-placeholder>${missionIconSvg(ICON_MAP[m.category]||'target',col).replace('width:24px;height:24px','width:60px;height:60px')}</div>'">`
+    : `<div class="mission-detail-img-placeholder">${missionIconSvg(ICON_MAP[m.category]||'target', col).replace('width:24px;height:24px','width:60px;height:60px')}</div>`;
 
   // アクションボタン
   const actionEl = document.getElementById('missionDetailAction');
   if (cleared) {
     actionEl.innerHTML = `<div class="mission-detail-cleared">✓ クリア済み</div>`;
-  } else if (!isUnlocked) {
-    actionEl.innerHTML = `<div style="text-align:center;font-size:13px;color:var(--sub);padding:14px 0">🔒 ${rankLabels[minRank] || ''}のランクが必要です</div>`;
+  } else if (!unlocked) {
+    actionEl.innerHTML = `<div style="text-align:center;font-size:13px;color:var(--sub);padding:14px 0">${lockLabel(lockReason, m)}</div>`;
   } else if (m.clearMethod === 'auto') {
     actionEl.innerHTML = `<button class="mission-detail-action-btn auto" onclick="closeMissionDetail();clearMissionAuto('${missionId}','${p.playerId}')">クリア！</button>`;
   } else if (m.clearMethod === 'qr') {
