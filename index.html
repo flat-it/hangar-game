@@ -139,6 +139,26 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.error{border-color:var(--red);color:var(--red)}
 
+/* MISSION CLEAR CELEBRATION */
+#clearCelebration{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .3s}
+#clearCelebration.show{opacity:1;pointer-events:auto}
+.clear-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.clear-card{position:relative;background:var(--bg2);border-radius:var(--r-lg);padding:32px 28px 28px;width:88%;max-width:360px;text-align:center;border:1px solid var(--border);box-shadow:0 0 60px rgba(0,229,176,.25);animation:celebPop .4s cubic-bezier(.175,.885,.32,1.275) both}
+@keyframes celebPop{from{transform:scale(.7) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.clear-icon{font-size:56px;margin-bottom:8px;animation:celebBounce .6s ease .2s both}
+@keyframes celebBounce{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+.clear-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--teal);letter-spacing:.1em;margin-bottom:6px;text-shadow:0 0 20px rgba(0,229,176,.5)}
+.clear-mission-name{font-size:14px;color:var(--sub);margin-bottom:20px;line-height:1.4}
+.clear-rewards{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.clear-reward-item{background:var(--bg3);border-radius:var(--r-md);padding:12px 18px;border:1px solid var(--border)}
+.clear-reward-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.clear-reward-val{font-family:var(--font-head);font-size:22px;font-weight:700}
+.clear-reward-val.pt{color:var(--amber)}
+.clear-reward-val.tp{color:var(--teal)}
+.clear-close-btn{width:100%;padding:13px;background:var(--teal-dim);border:1px solid var(--teal);border-radius:var(--r-md);color:var(--teal);font-family:var(--font-head);font-size:13px;font-weight:600;letter-spacing:.06em;cursor:pointer;transition:all .15s}
+.clear-close-btn:hover{background:rgba(0,229,176,.25)}
+.clear-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:var(--r-lg)}
+
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:flex;align-items:flex-end;justify-content:center}
 .modal-overlay.hidden{display:none}
@@ -329,6 +349,19 @@ body{display:flex;justify-content:center;background:radial-gradient(ellipse at 5
 </div>
 
 <div id="toast"></div>
+
+<!-- ミッションクリア演出 -->
+<div id="clearCelebration">
+  <div class="clear-backdrop" onclick="closeClearCelebration()"></div>
+  <div class="clear-card">
+    <div class="clear-particles" id="clearParticles"></div>
+    <div class="clear-icon" id="clearIcon">🎉</div>
+    <div class="clear-title">MISSION CLEAR!</div>
+    <div class="clear-mission-name" id="clearMissionName"></div>
+    <div class="clear-rewards" id="clearRewards"></div>
+    <button class="clear-close-btn" onclick="closeClearCelebration()">つぎのミッションへ</button>
+  </div>
+</div>
 
 <script>
 // ── API設定 ───────────────────────────────────────────
@@ -825,14 +858,63 @@ async function clearMission(missionId, playerId, evidenceType, evidenceData) {
     }
     renderHero(); renderHome();
     const tp = Number(res.trainingPointsEarned || 0);
-    const msg = res.status === 'pending'
-      ? `申請完了！スタッフの確認後にポイントが付与されます`
-      : `+${res.pointsEarned}pt${tp > 0 ? ` +${tp}tp` : ''} 獲得！ミッションクリア！`;
-    showToast(msg);
+    if (res.status === 'pending') {
+      showToast('申請完了！スタッフの確認後にポイントが付与されます');
+    } else {
+      showClearCelebration(m, Number(res.pointsEarned || 0), tp);
+    }
   } catch (e) { showToast(e.message, true); }
 }
 async function clearMissionAuto(missionId, playerId)  { await clearMission(missionId, playerId, '185220001', ''); }
 async function clearMissionStaff(missionId, playerId) { await clearMission(missionId, playerId, '185220003', ''); }
+
+// ── ミッションクリア演出 ──────────────────────────────
+function showClearCelebration(mission, pts, tp) {
+  const catIcons = { 'エントリー':'🚀','初級':'🎯','中級':'⚽','上級':'📷','FPV':'👁','HANGAR杯':'🏆','ポイントミッション':'💰','イベント':'🎪' };
+  document.getElementById('clearIcon').textContent = catIcons[mission?.category] || '🎉';
+  document.getElementById('clearMissionName').textContent = mission?.name || '';
+
+  let rewardsHtml = `<div class="clear-reward-item">
+    <div class="clear-reward-label">獲得ポイント</div>
+    <div class="clear-reward-val pt">+${pts}pt</div>
+  </div>`;
+  if (tp > 0) {
+    rewardsHtml += `<div class="clear-reward-item">
+      <div class="clear-reward-label">訓練ポイント</div>
+      <div class="clear-reward-val tp">+${tp}tp</div>
+    </div>`;
+  }
+  document.getElementById('clearRewards').innerHTML = rewardsHtml;
+
+  // パーティクル生成
+  const particles = document.getElementById('clearParticles');
+  particles.innerHTML = '';
+  const colors = ['#00e5b0','#ffb830','#4da6ff','#ff6eb0','#4cde80','#b07aff'];
+  for (let i = 0; i < 24; i++) {
+    const el = document.createElement('div');
+    const col = colors[Math.floor(Math.random() * colors.length)];
+    const x = Math.random() * 100;
+    const delay = Math.random() * .5;
+    const dur = .8 + Math.random() * .6;
+    const size = 4 + Math.random() * 6;
+    el.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:${col};border-radius:50%;left:${x}%;top:100%;animation:particle ${dur}s ease ${delay}s forwards`;
+    particles.appendChild(el);
+  }
+
+  // パーティクルアニメーション用スタイル追加（初回のみ）
+  if (!document.getElementById('particleStyle')) {
+    const style = document.createElement('style');
+    style.id = 'particleStyle';
+    style.textContent = `@keyframes particle{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-300px) scale(0) rotate(${Math.random()*360}deg);opacity:0}}`;
+    document.head.appendChild(style);
+  }
+
+  document.getElementById('clearCelebration').classList.add('show');
+}
+
+function closeClearCelebration() {
+  document.getElementById('clearCelebration').classList.remove('show');
+}
 
 // ── QRスキャン ────────────────────────────────────────
 let qrScanState = { missionId:null, playerId:null, expectedCode:null, stream:null, timer:null };
