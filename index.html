@@ -370,21 +370,31 @@ const API_GET  = 'https://prod-16.japaneast.logic.azure.com:443/workflows/c52fbe
 const LIFF_ID  = '2009832085-NoI5Q9yY';
 
 // ── 定数 ─────────────────────────────────────────────
-const RANKS = ['beginner','middle','advanced','expert'];
+// ランク階層：エントリー < 初級 < 中級 < 上級 < FPV
+const RANK_LEVELS = ['entry','beginner','middle','advanced','fpv'];
 const RANK_META = {
-  beginner: { label:'初級パイロット', color:'#00e5b0', threshold:0,   next:20  },
-  middle:   { label:'中級パイロット', color:'#4da6ff', threshold:20,  next:100 },
-  advanced: { label:'上級パイロット', color:'#ffb830', threshold:100, next:200 },
-  expert:   { label:'エキスパート',   color:'#ff6eb0', threshold:200, next:null},
+  entry:    { label:'エントリーパイロット', color:'#ffffff',  threshold:0 },
+  beginner: { label:'初級パイロット',       color:'#00e5b0',  threshold:0 },
+  middle:   { label:'中級パイロット',       color:'#4da6ff',  threshold:0 },
+  advanced: { label:'上級パイロット',       color:'#ffb830',  threshold:0 },
+  fpv:      { label:'FPVパイロット',        color:'#ff6eb0',  threshold:0 },
+  none:     { label:'未認定',              color:'#8890b0',  threshold:0 },
+};
+
+// バッジ定義（カテゴリ別訓練ポイント閾値）
+const BADGE_DEF = {
+  entry:    { cat:'エントリー', tp:50,  label:'エントリーバッジ', rankKey:'entry'    },
+  beginner: { cat:'初級',       tp:100, label:'初級バッジ',       rankKey:'beginner' },
+  middle:   { cat:'中級',       tp:150, label:'中級バッジ',       rankKey:'middle'   },
+  advanced: { cat:'上級',       tp:200, label:'上級バッジ',       rankKey:'advanced' },
+  fpv:      { cat:'FPV',        tp:200, label:'FPVバッジ',        rankKey:'fpv'      },
+  event:    { cat:'イベント',   tp:150, label:'イベントバッジ',   rankKey:null       },
 };
 
 // カテゴリ設定
-const CAT_COLOR   = { '初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0','ポイントミッション':'#b07aff','イベント':'#4cde80' };
-const CAT_RANK_MIN= { '初級':'beginner','中級':'middle','上級':'advanced','FPV':'advanced','HANGAR杯':'expert','ポイントミッション':null,'イベント':null };
-const ICON_MAP    = { '初級':'target','中級':'soccer','上級':'camera','FPV':'eye','HANGAR杯':'trophy','ポイントミッション':'coin','イベント':'tent' };
-
-// イベントバッジ訓練ポイント閾値
-const EVENT_BADGE_TP = 50;
+const CAT_COLOR   = { 'エントリー':'#ffffff','初級':'#00e5b0','中級':'#4da6ff','上級':'#ffb830','FPV':'#ff6eb0','HANGAR杯':'#ff6eb0','ポイントミッション':'#b07aff','イベント':'#4cde80' };
+const CAT_RANK_MIN= { 'エントリー':null,'初級':null,'中級':null,'上級':null,'FPV':null,'HANGAR杯':null,'ポイントミッション':null,'イベント':null };
+const ICON_MAP    = { 'エントリー':'entry','初級':'target','中級':'soccer','上級':'camera','FPV':'eye','HANGAR杯':'trophy','ポイントミッション':'coin','イベント':'tent' };
 
 // ── アプリ状態 ────────────────────────────────────────
 let STATE = {
@@ -445,8 +455,8 @@ async function boot() {
     STATE.missions  = missionsRes.missions || [];
     STATE.shopItems = shopRes.items || [];
 
-    // 訓練ポイントからcurrentLevelを再計算（Power Automateが更新するが念のためフロントでも）
-    STATE.players.forEach(p => { p.currentLevel = tpToRank(p.totalTrainingPoints); });
+    // カテゴリ別訓練ポイントでランクを計算
+    STATE.players.forEach(p => { p.currentLevel = calcRankFromCatTp(p); });
 
     hideLoading();
     if (STATE.players.length === 0) {
@@ -463,11 +473,32 @@ async function boot() {
   }
 }
 
-function tpToRank(tp) {
-  if (tp >= 200) return 'expert';
-  if (tp >= 100) return 'advanced';
-  if (tp >= 20)  return 'middle';
-  return 'beginner';
+// カテゴリ別訓練ポイント計算
+function calcCatTp(p, category) {
+  return p.clearedMissionIds.reduce((sum, id) => {
+    const m = STATE.missions.find(x => x.missionId === id);
+    return m?.category === category ? sum + Number(m.trainingPoints || 0) : sum;
+  }, 0);
+}
+
+// カテゴリ別tp→ランク判定（上位から判定）
+function calcRankFromCatTp(p) {
+  if (calcCatTp(p, 'FPV')      >= BADGE_DEF.fpv.tp)      return 'fpv';
+  if (calcCatTp(p, '上級')     >= BADGE_DEF.advanced.tp)  return 'advanced';
+  if (calcCatTp(p, '中級')     >= BADGE_DEF.middle.tp)    return 'middle';
+  if (calcCatTp(p, '初級')     >= BADGE_DEF.beginner.tp)  return 'beginner';
+  if (calcCatTp(p, 'エントリー') >= BADGE_DEF.entry.tp)   return 'entry';
+  return 'none';
+}
+
+// 他プレイヤー用：totalTrainingPoints合計から近似ランクを推定
+function calcRankFromTotalTp(totalTp) {
+  if (totalTp >= 200) return 'fpv';
+  if (totalTp >= 150) return 'advanced';
+  if (totalTp >= 100) return 'middle';
+  if (totalTp >= 50)  return 'beginner';
+  if (totalTp > 0)    return 'entry';
+  return 'none';
 }
 
 function setLoading(msg) { document.getElementById('loadingMsg').textContent = msg; document.getElementById('loading').classList.remove('hidden'); }
@@ -588,24 +619,36 @@ function switchPlayer(idx) {
 function renderHero() {
   const p = currentPlayer();
   if (!p) return;
-  const rank = p.currentLevel;
-  const meta = RANK_META[rank];
+  const rank = p.currentLevel || 'none';
+  const meta = RANK_META[rank] || RANK_META.none;
   document.getElementById('heroName').textContent = p.name;
   document.getElementById('heroPt').textContent = p.totalPoints;
   document.getElementById('heroTp').textContent = p.totalTrainingPoints;
   const pill = document.getElementById('heroRankBadge');
   pill.className = 'rank-badge ' + rank;
   pill.textContent = meta.label;
-  const low = meta.threshold;
-  const nextRank = RANKS[RANKS.indexOf(rank) + 1];
-  const high = nextRank ? RANK_META[nextRank].threshold : low + 100;
-  const pct = meta.next ? Math.min(100, Math.round(((p.totalTrainingPoints - low) / (high - low)) * 100)) : 100;
+
+  // 次のランクへの進捗を表示
+  const rankOrder = ['none','entry','beginner','middle','advanced','fpv'];
+  const currentIdx = rankOrder.indexOf(rank);
+  const nextRankKey = rankOrder[currentIdx + 1];
   const fill = document.getElementById('progFill');
-  fill.style.width = pct + '%';
-  fill.style.background = meta.color;
-  document.getElementById('progFrom').textContent = meta.label;
-  document.getElementById('progTo').textContent = meta.next ? `次のランク まで ${meta.next - p.totalTrainingPoints}tp` : '最高ランク到達';
-  drawBadgeSvg(document.getElementById('heroBadgeSvg'), rank, 60);
+
+  if (nextRankKey && BADGE_DEF[nextRankKey]) {
+    const bd = BADGE_DEF[nextRankKey];
+    const currentCatTp = calcCatTp(p, bd.cat);
+    const pct = Math.min(100, Math.round(currentCatTp / bd.tp * 100));
+    fill.style.width = pct + '%';
+    fill.style.background = meta.color || '#00e5b0';
+    document.getElementById('progFrom').textContent = meta.label;
+    document.getElementById('progTo').textContent = `${bd.label}まで ${bd.tp - currentCatTp}tp`;
+  } else {
+    fill.style.width = '100%';
+    fill.style.background = meta.color || '#ff6eb0';
+    document.getElementById('progFrom').textContent = meta.label;
+    document.getElementById('progTo').textContent = '最高ランク到達';
+  }
+  drawBadgeSvg(document.getElementById('heroBadgeSvg'), rank === 'none' ? 'entry' : rank, 60);
 }
 
 // ── タブ ─────────────────────────────────────────────
@@ -854,7 +897,7 @@ async function clearMission(missionId, playerId, evidenceType, evidenceData) {
       p.clearedMissionIds.push(missionId);
       p.totalPoints         = Number(p.totalPoints)         + Number(res.pointsEarned         || 0);
       p.totalTrainingPoints = Number(p.totalTrainingPoints) + Number(res.trainingPointsEarned || 0);
-      p.currentLevel = tpToRank(p.totalTrainingPoints);
+      p.currentLevel = calcRankFromCatTp(p);
     }
     renderHero(); renderHome();
     const tp = Number(res.trainingPointsEarned || 0);
@@ -991,55 +1034,103 @@ function drawBadgeSvg(svgEl, rankKey, size) {
 }
 
 // イベントミッションの訓練ポイント合計を計算
-function calcEventTp(p) {
-  const eventMissionIds = STATE.missions
-    .filter(m => m.category === 'イベント')
-    .map(m => m.missionId);
-  return p.clearedMissionIds
-    .filter(id => eventMissionIds.includes(id))
-    .reduce((sum, id) => {
-      const m = STATE.missions.find(x => x.missionId === id);
-      return sum + Number(m?.trainingPoints || 0);
-    }, 0);
-}
+// ── バッジ・ランク関連 ────────────────────────────────
+const BADGE_CFG = {
+  none:     { bg:'#8890b020',stroke:'#8890b0',fill:'#8890b0',label:'?',  fc:'#3a3f5a' },
+  entry:    { bg:'#ffffff20',stroke:'#ffffff',fill:'#ffffff',label:'E',  fc:'#222222' },
+  beginner: { bg:'#00e5b020',stroke:'#00e5b0',fill:'#00e5b0',label:'初', fc:'#004d3d' },
+  middle:   { bg:'#4da6ff20',stroke:'#4da6ff',fill:'#4da6ff',label:'中', fc:'#0a3060' },
+  advanced: { bg:'#ffb83020',stroke:'#ffb830',fill:'#ffb830',label:'上', fc:'#5a3a00' },
+  fpv:      { bg:'#ff6eb020',stroke:'#ff6eb0',fill:'#ff6eb0',label:'FPV',fc:'#5a1030' },
+  event:    { bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'EVT',fc:'#0a3020' },
+  mission5: { bg:'#4cde8020',stroke:'#4cde80',fill:'#4cde80',label:'×5', fc:'#0a3020' },
+  mission10:{ bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'×10',fc:'#0a3020' },
+  hangar:   { bg:'#7a7f9a20',stroke:'#7a7f9a',fill:'#7a7f9a',label:'H',  fc:'#2a2a3a' },
+};
 
+// バッジ一覧定義
 const BADGES = [
-  { id:'bg-beginner', name:'初級認定',    rank:'beginner',  unlock: p => RANKS.indexOf(p.currentLevel) >= 0 },
-  { id:'bg-middle',   name:'中級認定',    rank:'middle',    unlock: p => RANKS.indexOf(p.currentLevel) >= 1 },
-  { id:'bg-advanced', name:'上級認定',    rank:'advanced',  unlock: p => RANKS.indexOf(p.currentLevel) >= 2 },
-  { id:'bg-expert',   name:'エキスパート',rank:'expert',    unlock: p => RANKS.indexOf(p.currentLevel) >= 3 },
-  { id:'bg-m5',       name:'5ミッション', rank:'mission5',  unlock: p => p.clearedMissionIds.length >= 5 },
-  { id:'bg-m10',      name:'10ミッション',rank:'mission10', unlock: p => p.clearedMissionIds.length >= 10 },
-  { id:'bg-hangar',   name:'HANGAR杯',   rank:'hangar',    unlock: () => false },
-  { id:'bg-fpv',      name:'FPVマスター', rank:'fpv',       unlock: p => {
-    const fpvM = STATE.missions.find(m => m.category === 'FPV');
-    return fpvM ? p.clearedMissionIds.includes(fpvM.missionId) : false;
-  }},
-  { id:'bg-event',    name:'イベント達成', rank:'event',     unlock: p => calcEventTp(p) >= EVENT_BADGE_TP },
+  {
+    id:'bg-entry',    name:'エントリーバッジ', rank:'entry',
+    cat:'エントリー', tp:50,
+    unlock: p => calcCatTp(p,'エントリー') >= 50,
+    progress: p => ({ cur: calcCatTp(p,'エントリー'), max: 50 }),
+  },
+  {
+    id:'bg-beginner', name:'初級バッジ',       rank:'beginner',
+    cat:'初級',       tp:100,
+    unlock: p => calcCatTp(p,'初級') >= 100,
+    progress: p => ({ cur: calcCatTp(p,'初級'), max: 100 }),
+  },
+  {
+    id:'bg-middle',   name:'中級バッジ',       rank:'middle',
+    cat:'中級',       tp:150,
+    unlock: p => calcCatTp(p,'中級') >= 150,
+    progress: p => ({ cur: calcCatTp(p,'中級'), max: 150 }),
+  },
+  {
+    id:'bg-advanced', name:'上級バッジ',       rank:'advanced',
+    cat:'上級',       tp:200,
+    unlock: p => calcCatTp(p,'上級') >= 200,
+    progress: p => ({ cur: calcCatTp(p,'上級'), max: 200 }),
+  },
+  {
+    id:'bg-fpv',      name:'FPVバッジ',        rank:'fpv',
+    cat:'FPV',        tp:200,
+    unlock: p => calcCatTp(p,'FPV') >= 200,
+    progress: p => ({ cur: calcCatTp(p,'FPV'), max: 200 }),
+  },
+  {
+    id:'bg-event',    name:'イベントバッジ',   rank:'event',
+    cat:'イベント',   tp:150,
+    unlock: p => calcCatTp(p,'イベント') >= 150,
+    progress: p => ({ cur: calcCatTp(p,'イベント'), max: 150 }),
+  },
+  {
+    id:'bg-m5',       name:'5ミッション',      rank:'mission5',
+    cat:null,         tp:null,
+    unlock: p => p.clearedMissionIds.length >= 5,
+    progress: p => ({ cur: p.clearedMissionIds.length, max: 5, unit:'件' }),
+  },
+  {
+    id:'bg-m10',      name:'10ミッション',     rank:'mission10',
+    cat:null,         tp:null,
+    unlock: p => p.clearedMissionIds.length >= 10,
+    progress: p => ({ cur: p.clearedMissionIds.length, max: 10, unit:'件' }),
+  },
+  {
+    id:'bg-hangar',   name:'HANGAR杯',         rank:'hangar',
+    cat:null,         tp:null,
+    unlock: () => false,
+    progress: () => null,
+  },
 ];
 
 function renderBadge() {
   const p = currentPlayer();
   if (!p) return;
+
   let html = '<div class="badge-grid">';
   BADGES.forEach(b => {
     const unlocked = b.unlock(p);
-    html += `<div class="badge-cell${unlocked ? '' : ' locked'}">
+    html += `<div class="badge-cell${unlocked ? '' : ' locked'}" onclick="showBadgeDetail('${b.id}')">
       <svg viewBox="0 0 60 60" id="badge-${b.id}"></svg>
       <div class="badge-cell-name">${b.name}</div>
     </div>`;
   });
   html += '</div>';
 
-  const eventTp = calcEventTp(p);
-  const eventProg = Math.min(100, Math.round(eventTp / EVENT_BADGE_TP * 100));
-  html += `<div style="padding:0 16px 16px">
-    <div class="sec-label" style="padding:0 0 8px">イベントバッジ進捗</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--sub);margin-bottom:8px">
-        <span>イベント訓練ポイント</span><span style="color:var(--teal);font-weight:700">${eventTp} / ${EVENT_BADGE_TP}tp</span>
+  // バッジ詳細パネル（初期非表示）
+  html += `<div id="badgeDetailPanel" style="display:none;padding:0 16px 16px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <svg viewBox="0 0 60 60" id="badgeDetailSvg" style="width:52px;height:52px;flex-shrink:0"></svg>
+        <div>
+          <div id="badgeDetailName" style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px"></div>
+          <div id="badgeDetailStatus" style="font-size:12px"></div>
+        </div>
       </div>
-      <div class="progress-track"><div class="progress-fill" style="width:${eventProg}%;background:var(--teal)"></div></div>
+      <div id="badgeDetailProgress"></div>
     </div>
   </div>`;
 
@@ -1050,40 +1141,113 @@ function renderBadge() {
   });
 }
 
+// バッジタップで詳細表示
+function showBadgeDetail(badgeId) {
+  const p = currentPlayer();
+  const b = BADGES.find(x => x.id === badgeId);
+  if (!b || !p) return;
+
+  const panel = document.getElementById('badgeDetailPanel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const unlocked = b.unlock(p);
+  document.getElementById('badgeDetailName').textContent = b.name;
+
+  // ステータス
+  const statusEl = document.getElementById('badgeDetailStatus');
+  statusEl.textContent = unlocked ? '✅ 達成済み' : '未達成';
+  statusEl.style.color = unlocked ? 'var(--teal)' : 'var(--muted)';
+
+  // バッジSVG
+  drawBadgeSvg(document.getElementById('badgeDetailSvg'), b.rank, 52);
+
+  // 進捗バー
+  const progEl = document.getElementById('badgeDetailProgress');
+  const prog = b.progress(p);
+  if (!prog) {
+    progEl.innerHTML = unlocked
+      ? `<div style="font-size:12px;color:var(--sub)">特別バッジです</div>`
+      : `<div style="font-size:12px;color:var(--sub)">条件未公開</div>`;
+    return;
+  }
+
+  const unit = prog.unit || 'tp';
+  const pct = Math.min(100, Math.round(prog.cur / prog.max * 100));
+  const col = BADGE_CFG[b.rank]?.stroke || 'var(--teal)';
+  const remaining = prog.max - prog.cur;
+
+  progEl.innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:6px">
+      <span>${b.cat ? b.cat + 'カテゴリ訓練ポイント' : 'クリアミッション数'}</span>
+      <span style="color:${col};font-weight:700">${prog.cur} / ${prog.max}${unit}</span>
+    </div>
+    <div class="progress-track" style="height:8px">
+      <div class="progress-fill" style="width:${pct}%;background:${col}"></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px;text-align:right">
+      ${unlocked ? '達成！' : `あと ${remaining}${unit}`}
+    </div>`;
+}
+
 // ── ランキング ────────────────────────────────────────
-function renderRank() {
+async function renderRank() {
   const p = currentPlayer();
   if (!p) return;
-  const combined = [
-    { name:'よしき', level:'advanced', totalPoints:142, isSelf:false },
-    { name:'りなこ', level:'middle',   totalPoints:98,  isSelf:false },
-    { name:'だいき', level:'middle',   totalPoints:76,  isSelf:false },
-    { name:'さくら', level:'middle',   totalPoints:55,  isSelf:false },
-    { name: p.name + '（自分）', level: p.currentLevel, totalPoints: p.totalPoints, isSelf:true },
-  ].sort((a,b) => b.totalPoints - a.totalPoints);
 
-  const posClass = ['pos-1','pos-2','pos-3'];
-  const avatarColors = [
-    {bg:'#FAEEDA',tc:'#633806'},{bg:'#1a2a40',tc:'#4da6ff'},{bg:'#2a1a20',tc:'#ff6eb0'},
-    {bg:'#1a2040',tc:'#7a7f9a'},{bg:'#0a1f3a',tc:'#4da6ff'},
-  ];
+  document.getElementById('screen-rank').innerHTML =
+    `<div class="sec-label">今月の総合ランキング</div>
+     <div style="padding:40px 16px;text-align:center">
+       <div class="loading-spinner" style="margin:0 auto 12px"></div>
+       <div style="font-size:13px;color:var(--muted)">読み込み中...</div>
+     </div>`;
 
-  let html = combined.map((r, i) => {
-    const ac = avatarColors[i] || avatarColors[0];
-    return `<div class="rank-row${r.isSelf?' me':''}">
-      <div class="rank-pos ${posClass[i]||''}">${i+1}</div>
-      <div class="rank-avatar" style="background:${ac.bg};color:${ac.tc}">${r.name.charAt(0)}</div>
-      <div class="rank-name-col">
-        <div class="rank-name">${r.name}</div>
-        <div class="rank-level">${RANK_META[r.level]?.label||r.level}</div>
-      </div>
-      <div class="rank-pt-col">${r.totalPoints}pt</div>
-    </div>`;
-  }).join('');
+  try {
+    const res = await apiGet('get_ranking');
+    if (res.error) throw new Error(res.error.message);
 
-  document.getElementById('screen-rank').innerHTML = `
-    <div class="sec-label">今月の総合ランキング</div>
-    <div>${html}</div>`;
+    const players = res.players || [];
+    const myPlayerIds = STATE.players.map(x => x.playerId);
+
+    const posClass = ['pos-1','pos-2','pos-3'];
+    const avatarColors = [
+      {bg:'#FAEEDA',tc:'#633806'},{bg:'#1a2a40',tc:'#4da6ff'},
+      {bg:'#2a1a20',tc:'#ff6eb0'},{bg:'#1a2040',tc:'#7a7f9a'},
+      {bg:'#0a1f3a',tc:'#4da6ff'},{bg:'#2a1a10',tc:'#ffb830'},
+    ];
+
+    let html = players.map((r, i) => {
+      const isMe = myPlayerIds.includes(r.playerId);
+      const ac = avatarColors[i % avatarColors.length];
+      // 自分のプレイヤーはSTATEから正確なランクを取得、他は訓練ポイント合計から近似
+      const myPlayer = STATE.players.find(x => x.playerId === r.playerId);
+      const rankKey = myPlayer
+        ? calcRankFromCatTp(myPlayer)
+        : calcRankFromTotalTp(Number(r.totalTrainingPoints || 0));
+      const rankLabel = RANK_META[rankKey]?.label || '未認定';
+      const lifetimePt = Number(r.totalLifetimePoints || 0);
+      return `<div class="rank-row${isMe ? ' me' : ''}">
+        <div class="rank-pos ${posClass[i] || ''}">${i + 1}</div>
+        <div class="rank-avatar" style="background:${ac.bg};color:${ac.tc}">${r.name.charAt(0)}</div>
+        <div class="rank-name-col">
+          <div class="rank-name">${r.name}${isMe ? ' 👤' : ''}</div>
+          <div class="rank-level">${rankLabel}</div>
+        </div>
+        <div class="rank-pt-col">${lifetimePt}pt</div>
+      </div>`;
+    }).join('');
+
+    if (!players.length) {
+      html = `<div style="padding:40px 16px;text-align:center;font-size:13px;color:var(--muted)">まだランキングデータがありません</div>`;
+    }
+
+    document.getElementById('screen-rank').innerHTML =
+      `<div class="sec-label">総合ランキング（生涯獲得ポイント順）</div><div>${html}</div>`;
+
+  } catch (e) {
+    document.getElementById('screen-rank').innerHTML =
+      `<div style="padding:40px 16px;text-align:center;font-size:13px;color:var(--red)">読み込みエラー: ${e.message}</div>`;
+  }
 }
 
 // ── ショップ ──────────────────────────────────────────
