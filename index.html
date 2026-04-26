@@ -1001,16 +1001,18 @@ function scanQrFrame() {
 }
 
 // ── バッジ ────────────────────────────────────────────
+// ── バッジ・ランク関連 ────────────────────────────────
 const BADGE_CFG = {
+  none:     { bg:'#8890b020',stroke:'#8890b0',fill:'#8890b0',label:'?',  fc:'#3a3f5a' },
+  entry:    { bg:'#ffffff20',stroke:'#ffffff',fill:'#ffffff',label:'E',  fc:'#222222' },
   beginner: { bg:'#00e5b020',stroke:'#00e5b0',fill:'#00e5b0',label:'初', fc:'#004d3d' },
   middle:   { bg:'#4da6ff20',stroke:'#4da6ff',fill:'#4da6ff',label:'中', fc:'#0a3060' },
   advanced: { bg:'#ffb83020',stroke:'#ffb830',fill:'#ffb830',label:'上', fc:'#5a3a00' },
-  expert:   { bg:'#ff6eb020',stroke:'#ff6eb0',fill:'#ff6eb0',label:'EX',fc:'#5a1030' },
-  mission5: { bg:'#4cde8020',stroke:'#4cde80',fill:'#4cde80',label:'×5',fc:'#0a3020' },
-  mission10:{ bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'×10',fc:'#0a3020' },
-  hangar:   { bg:'#7a7f9a20',stroke:'#7a7f9a',fill:'#7a7f9a',label:'H', fc:'#2a2a3a' },
-  fpv:      { bg:'#ff5f5f20',stroke:'#ff5f5f',fill:'#ff5f5f',label:'FPV',fc:'#4a0000' },
+  fpv:      { bg:'#ff6eb020',stroke:'#ff6eb0',fill:'#ff6eb0',label:'FPV',fc:'#5a1030' },
   event:    { bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'EVT',fc:'#0a3020' },
+  mission5: { bg:'#4cde8020',stroke:'#4cde80',fill:'#4cde80',label:'×5', fc:'#0a3020' },
+  mission10:{ bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'×10',fc:'#0a3020' },
+  hangar:   { bg:'#7a7f9a20',stroke:'#7a7f9a',fill:'#7a7f9a',label:'H',  fc:'#2a2a3a' },
 };
 
 function drawBadgeSvg(svgEl, rankKey, size) {
@@ -1032,21 +1034,6 @@ function drawBadgeSvg(svgEl, rankKey, size) {
     <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central"
       font-size="${fs}" font-weight="700" fill="${c.fc}" font-family="'Orbitron',monospace">${c.label}</text>`;
 }
-
-// イベントミッションの訓練ポイント合計を計算
-// ── バッジ・ランク関連 ────────────────────────────────
-const BADGE_CFG = {
-  none:     { bg:'#8890b020',stroke:'#8890b0',fill:'#8890b0',label:'?',  fc:'#3a3f5a' },
-  entry:    { bg:'#ffffff20',stroke:'#ffffff',fill:'#ffffff',label:'E',  fc:'#222222' },
-  beginner: { bg:'#00e5b020',stroke:'#00e5b0',fill:'#00e5b0',label:'初', fc:'#004d3d' },
-  middle:   { bg:'#4da6ff20',stroke:'#4da6ff',fill:'#4da6ff',label:'中', fc:'#0a3060' },
-  advanced: { bg:'#ffb83020',stroke:'#ffb830',fill:'#ffb830',label:'上', fc:'#5a3a00' },
-  fpv:      { bg:'#ff6eb020',stroke:'#ff6eb0',fill:'#ff6eb0',label:'FPV',fc:'#5a1030' },
-  event:    { bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'EVT',fc:'#0a3020' },
-  mission5: { bg:'#4cde8020',stroke:'#4cde80',fill:'#4cde80',label:'×5', fc:'#0a3020' },
-  mission10:{ bg:'#4cde8030',stroke:'#4cde80',fill:'#4cde80',label:'×10',fc:'#0a3020' },
-  hangar:   { bg:'#7a7f9a20',stroke:'#7a7f9a',fill:'#7a7f9a',label:'H',  fc:'#2a2a3a' },
-};
 
 // バッジ一覧定義
 const BADGES = [
