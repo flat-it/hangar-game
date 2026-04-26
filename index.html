@@ -372,6 +372,9 @@ const LIFF_ID  = '2009832085-NoI5Q9yY';
 // ── 定数 ─────────────────────────────────────────────
 // ランク階層：エントリー < 初級 < 中級 < 上級 < FPV
 const RANK_LEVELS = ['entry','beginner','middle','advanced','fpv'];
+const RANKS = ['entry','beginner','middle','advanced','fpv']; // getMissionLockStatus用
+// requiredRankの対応（noneは全て解放）
+const RANKS_FOR_REQ = ['beginner','middle','advanced','fpv']; // requiredRankの有効値
 const RANK_META = {
   entry:    { label:'エントリーパイロット', color:'#ffffff',  threshold:0 },
   beginner: { label:'初級パイロット',       color:'#00e5b0',  threshold:0 },
@@ -383,10 +386,10 @@ const RANK_META = {
 
 // バッジ定義（カテゴリ別訓練ポイント閾値）
 const BADGE_DEF = {
-  entry:    { cat:'エントリー', tp:50,  label:'エントリーバッジ', rankKey:'entry'    },
-  beginner: { cat:'初級',       tp:100, label:'初級バッジ',       rankKey:'beginner' },
-  middle:   { cat:'中級',       tp:150, label:'中級バッジ',       rankKey:'middle'   },
-  advanced: { cat:'上級',       tp:200, label:'上級バッジ',       rankKey:'advanced' },
+  entry:    { cat:'エントリー', tp:25,  label:'エントリーバッジ', rankKey:'entry'    },
+  beginner: { cat:'初級',       tp:75,  label:'初級バッジ',       rankKey:'beginner' },
+  middle:   { cat:'中級',       tp:100, label:'中級バッジ',       rankKey:'middle'   },
+  advanced: { cat:'上級',       tp:150, label:'上級バッジ',       rankKey:'advanced' },
   fpv:      { cat:'FPV',        tp:200, label:'FPVバッジ',        rankKey:'fpv'      },
   event:    { cat:'イベント',   tp:150, label:'イベントバッジ',   rankKey:null       },
 };
@@ -483,12 +486,12 @@ function calcCatTp(p, category) {
 
 // カテゴリ別tp→ランク判定（上位から判定）
 function calcRankFromCatTp(p) {
-  if (calcCatTp(p, 'FPV')      >= BADGE_DEF.fpv.tp)      return 'fpv';
-  if (calcCatTp(p, '上級')     >= BADGE_DEF.advanced.tp)  return 'advanced';
-  if (calcCatTp(p, '中級')     >= BADGE_DEF.middle.tp)    return 'middle';
-  if (calcCatTp(p, '初級')     >= BADGE_DEF.beginner.tp)  return 'beginner';
-  if (calcCatTp(p, 'エントリー') >= BADGE_DEF.entry.tp)   return 'entry';
-  return 'none';
+  if (calcCatTp(p, 'FPV')       >= BADGE_DEF.fpv.tp)      return 'fpv';
+  if (calcCatTp(p, '上級')      >= BADGE_DEF.advanced.tp)  return 'advanced';
+  if (calcCatTp(p, '中級')      >= BADGE_DEF.middle.tp)    return 'middle';
+  if (calcCatTp(p, '初級')      >= BADGE_DEF.beginner.tp)  return 'beginner';
+  if (calcCatTp(p, 'エントリー') >= BADGE_DEF.entry.tp)    return 'entry';
+  return 'entry'; // 全員最低でもエントリーパイロット
 }
 
 // 他プレイヤー用：totalTrainingPoints合計から近似ランクを推定
@@ -497,8 +500,7 @@ function calcRankFromTotalTp(totalTp) {
   if (totalTp >= 150) return 'advanced';
   if (totalTp >= 100) return 'middle';
   if (totalTp >= 50)  return 'beginner';
-  if (totalTp > 0)    return 'entry';
-  return 'none';
+  return 'entry'; // 全員最低でもエントリーパイロット
 }
 
 function setLoading(msg) { document.getElementById('loadingMsg').textContent = msg; document.getElementById('loading').classList.remove('hidden'); }
@@ -619,8 +621,8 @@ function switchPlayer(idx) {
 function renderHero() {
   const p = currentPlayer();
   if (!p) return;
-  const rank = p.currentLevel || 'none';
-  const meta = RANK_META[rank] || RANK_META.none;
+  const rank = p.currentLevel || 'entry';
+  const meta = RANK_META[rank] || RANK_META.entry;
   document.getElementById('heroName').textContent = p.name;
   document.getElementById('heroPt').textContent = p.totalPoints;
   document.getElementById('heroTp').textContent = p.totalTrainingPoints;
@@ -629,7 +631,7 @@ function renderHero() {
   pill.textContent = meta.label;
 
   // 次のランクへの進捗を表示
-  const rankOrder = ['none','entry','beginner','middle','advanced','fpv'];
+  const rankOrder = ['entry','beginner','middle','advanced','fpv'];
   const currentIdx = rankOrder.indexOf(rank);
   const nextRankKey = rankOrder[currentIdx + 1];
   const fill = document.getElementById('progFill');
@@ -642,13 +644,22 @@ function renderHero() {
     fill.style.background = meta.color || '#00e5b0';
     document.getElementById('progFrom').textContent = meta.label;
     document.getElementById('progTo').textContent = `${bd.label}まで ${bd.tp - currentCatTp}tp`;
+  } else if (rank === 'entry') {
+    // エントリーバッジ未取得の場合はエントリーの進捗を表示
+    const bd = BADGE_DEF.entry;
+    const currentCatTp = calcCatTp(p, bd.cat);
+    const pct = Math.min(100, Math.round(currentCatTp / bd.tp * 100));
+    fill.style.width = pct + '%';
+    fill.style.background = meta.color || '#ffffff';
+    document.getElementById('progFrom').textContent = meta.label;
+    document.getElementById('progTo').textContent = `${bd.label}まで ${Math.max(0, bd.tp - currentCatTp)}tp`;
   } else {
     fill.style.width = '100%';
     fill.style.background = meta.color || '#ff6eb0';
     document.getElementById('progFrom').textContent = meta.label;
     document.getElementById('progTo').textContent = '最高ランク到達';
   }
-  drawBadgeSvg(document.getElementById('heroBadgeSvg'), rank === 'none' ? 'entry' : rank, 60);
+  drawBadgeSvg(document.getElementById('heroBadgeSvg'), rank, 60);
 }
 
 // ── タブ ─────────────────────────────────────────────
@@ -706,38 +717,57 @@ function isEventVisible(m) {
 
 // ── ミッションのロック判定 ─────────────────────────────
 function getMissionLockStatus(m, p) {
-  const rankIdx = RANKS.indexOf(p.currentLevel);
   const cat     = m.category;
-  // ランクは個別ミッションのrequiredRankを使う
   const reqRank = m.requiredRank;
-  const rankOk  = !reqRank || rankIdx >= RANKS.indexOf(reqRank);
-  // sortOrderがnullの場合は制限なし扱い
+  const curRank = p.currentLevel || 'entry';
   const sortNo  = (m.sortOrder !== null && m.sortOrder !== undefined) ? Number(m.sortOrder) : null;
 
-  // エントリー：常に開放
+  // エントリーバッジ取得済みかどうか
+  const hasEntryBadge = calcCatTp(p, 'エントリー') >= BADGE_DEF.entry.tp;
+
+  // requiredRankチェック（entryはbeginner相当）
+  function rankOk() {
+    if (!reqRank || reqRank === 'beginner') return true;
+    const rankOrder = ['beginner','middle','advanced','fpv'];
+    const reqIdx = rankOrder.indexOf(reqRank);
+    const curMap = { entry:'beginner', beginner:'beginner', middle:'middle', advanced:'advanced', fpv:'fpv' };
+    const curIdx = rankOrder.indexOf(curMap[curRank] || 'beginner');
+    return curIdx >= reqIdx;
+  }
+
+  // ── エントリー：常に開放 ──────────────────────────────
   if (cat === 'エントリー') return { unlocked: true, lockReason: null };
 
-  // イベント：期間内+isEvent+ランク
+  // ── イベント：期間内+isEvent+ランク+エントリーバッジ ──
   if (cat === 'イベント') {
-    if (!rankOk) return { unlocked: false, lockReason: `rank:${reqRank}` };
+    if (!hasEntryBadge) return { unlocked: false, lockReason: 'entry' };
+    if (!rankOk())      return { unlocked: false, lockReason: `rank:${reqRank}` };
     return { unlocked: true, lockReason: null };
   }
 
-  // ポイントミッション・HANGAR杯：ランクのみ
+  // ── ポイントミッション・HANGAR杯：エントリーバッジ+ランク
   if (cat === 'ポイントミッション' || cat === 'HANGAR杯') {
-    if (!rankOk) return { unlocked: false, lockReason: `rank:${reqRank}` };
+    if (!hasEntryBadge) return { unlocked: false, lockReason: 'entry' };
+    if (!rankOk())      return { unlocked: false, lockReason: `rank:${reqRank}` };
     return { unlocked: true, lockReason: null };
   }
 
-  // 初級・中級・上級・FPV
+  // ── 初級・中級・上級・FPV ────────────────────────────
   if (['初級','中級','上級','FPV'].includes(cat)) {
-    // ランクチェック（個別ミッションのrequiredRank）
-    if (!rankOk) return { unlocked: false, lockReason: `rank:${reqRank}` };
-    // sortOrder=nullは制限なし
+    // まずrequiredRankチェック
+    if (!rankOk()) return { unlocked: false, lockReason: `rank:${reqRank}` };
+
+    // sortOrder=nullは制限なし（エントリーバッジ不要）
     if (sortNo === null) return { unlocked: true, lockReason: null };
-    // No1：requiredRankのみで開放（エントリー不要）
-    if (sortNo === 1) return { unlocked: true, lockReason: null };
-    // No2以降：同カテゴリのsortOrder=1クリア済みが必要
+
+    // No1：エントリーバッジが必要
+    if (sortNo === 1) {
+      if (!hasEntryBadge) return { unlocked: false, lockReason: 'entry' };
+      return { unlocked: true, lockReason: null };
+    }
+
+    // No2以降：エントリーバッジ + 同カテゴリNo1クリア済み
+    if (!hasEntryBadge) return { unlocked: false, lockReason: 'entry' };
     const catNo1 = STATE.missions.find(
       x => x.category === cat && x.sortOrder !== null && Number(x.sortOrder) === 1
     );
@@ -752,8 +782,11 @@ function getMissionLockStatus(m, p) {
 
 function lockLabel(lockReason) {
   if (!lockReason) return '';
-  if (lockReason.startsWith('rank:')) return `🔒 ${RANK_META[lockReason.split(':')[1]]?.label || ''}〜`;
-  if (lockReason === 'entry') return '🔒 エントリー完了後';
+  if (lockReason.startsWith('rank:')) {
+    const rank = lockReason.split(':')[1];
+    return `🔒 ${RANK_META[rank]?.label || rank}〜`;
+  }
+  if (lockReason === 'entry') return '🔒 エントリーバッジ取得後';
   if (lockReason.startsWith('cat1:')) return `🔒 ${lockReason.split(':')[1]}No.1クリア後`;
   return '🔒';
 }
