@@ -1069,42 +1069,43 @@ function drawBadgeSvg(svgEl, rankKey, size) {
 }
 
 // バッジ一覧定義
+// ※ カテゴリ系バッジの閾値はBADGE_DEFを参照（重複定義を避け、整合性を保つ）
 const BADGES = [
   {
-    id:'bg-entry',    name:'エントリーバッジ', rank:'entry',
-    cat:'エントリー', tp:50,
-    unlock: p => calcCatTp(p,'エントリー') >= 50,
-    progress: p => ({ cur: calcCatTp(p,'エントリー'), max: 50 }),
+    id:'bg-entry',    name: BADGE_DEF.entry.label,    rank:'entry',
+    cat: BADGE_DEF.entry.cat,    tp: BADGE_DEF.entry.tp,
+    unlock:   p => calcCatTp(p, BADGE_DEF.entry.cat)    >= BADGE_DEF.entry.tp,
+    progress: p => ({ cur: calcCatTp(p, BADGE_DEF.entry.cat),    max: BADGE_DEF.entry.tp }),
   },
   {
-    id:'bg-beginner', name:'初級バッジ',       rank:'beginner',
-    cat:'初級',       tp:100,
-    unlock: p => calcCatTp(p,'初級') >= 100,
-    progress: p => ({ cur: calcCatTp(p,'初級'), max: 100 }),
+    id:'bg-beginner', name: BADGE_DEF.beginner.label, rank:'beginner',
+    cat: BADGE_DEF.beginner.cat, tp: BADGE_DEF.beginner.tp,
+    unlock:   p => calcCatTp(p, BADGE_DEF.beginner.cat) >= BADGE_DEF.beginner.tp,
+    progress: p => ({ cur: calcCatTp(p, BADGE_DEF.beginner.cat), max: BADGE_DEF.beginner.tp }),
   },
   {
-    id:'bg-middle',   name:'中級バッジ',       rank:'middle',
-    cat:'中級',       tp:150,
-    unlock: p => calcCatTp(p,'中級') >= 150,
-    progress: p => ({ cur: calcCatTp(p,'中級'), max: 150 }),
+    id:'bg-middle',   name: BADGE_DEF.middle.label,   rank:'middle',
+    cat: BADGE_DEF.middle.cat,   tp: BADGE_DEF.middle.tp,
+    unlock:   p => calcCatTp(p, BADGE_DEF.middle.cat)   >= BADGE_DEF.middle.tp,
+    progress: p => ({ cur: calcCatTp(p, BADGE_DEF.middle.cat),   max: BADGE_DEF.middle.tp }),
   },
   {
-    id:'bg-advanced', name:'上級バッジ',       rank:'advanced',
-    cat:'上級',       tp:200,
-    unlock: p => calcCatTp(p,'上級') >= 200,
-    progress: p => ({ cur: calcCatTp(p,'上級'), max: 200 }),
+    id:'bg-advanced', name: BADGE_DEF.advanced.label, rank:'advanced',
+    cat: BADGE_DEF.advanced.cat, tp: BADGE_DEF.advanced.tp,
+    unlock:   p => calcCatTp(p, BADGE_DEF.advanced.cat) >= BADGE_DEF.advanced.tp,
+    progress: p => ({ cur: calcCatTp(p, BADGE_DEF.advanced.cat), max: BADGE_DEF.advanced.tp }),
   },
   {
-    id:'bg-fpv',      name:'FPVバッジ',        rank:'fpv',
-    cat:'FPV',        tp:200,
-    unlock: p => calcCatTp(p,'FPV') >= 200,
-    progress: p => ({ cur: calcCatTp(p,'FPV'), max: 200 }),
+    id:'bg-fpv',      name: BADGE_DEF.fpv.label,      rank:'fpv',
+    cat: BADGE_DEF.fpv.cat,      tp: BADGE_DEF.fpv.tp,
+    unlock:   p => calcCatTp(p, BADGE_DEF.fpv.cat)      >= BADGE_DEF.fpv.tp,
+    progress: p => ({ cur: calcCatTp(p, BADGE_DEF.fpv.cat),      max: BADGE_DEF.fpv.tp }),
   },
   {
-    id:'bg-event',    name:'イベントバッジ',   rank:'event',
-    cat:'イベント',   tp:150,
-    unlock: p => calcCatTp(p,'イベント') >= 150,
-    progress: p => ({ cur: calcCatTp(p,'イベント'), max: 150 }),
+    id:'bg-event',    name: BADGE_DEF.event.label,    rank:'event',
+    cat: BADGE_DEF.event.cat,    tp: BADGE_DEF.event.tp,
+    unlock:   p => calcCatTp(p, BADGE_DEF.event.cat)    >= BADGE_DEF.event.tp,
+    progress: p => ({ cur: calcCatTp(p, BADGE_DEF.event.cat),    max: BADGE_DEF.event.tp }),
   },
   {
     id:'bg-m5',       name:'5ミッション',      rank:'mission5',
