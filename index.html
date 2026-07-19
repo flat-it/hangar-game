@@ -966,13 +966,12 @@ async function clearMission(missionId, playerId, evidenceType, evidenceData) {
       const earnedTp = isCount ? countVal * Number(m?.trainingPoints || 0) : Number(res.trainingPointsEarned || m?.trainingPoints || 0);
       showClearCelebration(m, earnedPt, earnedTp);
     } else if (res.status === 'repeat') {
+      const earnedTp = isCount ? countVal * Number(m?.trainingPoints || 0) : Number(m?.trainingPoints || 0);
       if (p) {
-        const earnedTp = Number(m?.trainingPoints || 0);
         p.totalTrainingPoints = Number(p.totalTrainingPoints) + earnedTp;
         p.currentLevel = calcRankFromCatTp(p);
       }
       renderHero(); renderHome();
-      const earnedTp = Number(m?.trainingPoints || 0);
       if (earnedTp > 0) showClearCelebration(m, 0, earnedTp);
       else showToast('このミッションはクリア済みです');
     } else if (res.status === 'pending') {
