@@ -900,10 +900,30 @@ function openMissionDetail(missionId) {
 
   // アクションボタン
   const actionEl = document.getElementById('missionDetailAction');
-  if (cleared) {
-    actionEl.innerHTML = `<div class="mission-detail-cleared">✓ クリア済み</div>`;
+  const isCountMethod = m.clearMethod === 'count';
+  if (cleared && !isCountMethod) {
+    const tp = Number(m.trainingPoints || 0);
+    const repeatBtn = tp > 0 && m.clearMethod === 'auto'
+      ? `<button class="mission-detail-action-btn auto" style="margin-top:10px" onclick="closeMissionDetail();clearMissionAuto('${missionId}','${p.playerId}')">+${tp}tp 再チャレンジ</button>`
+      : tp > 0 && m.clearMethod === 'qr'
+      ? `<button class="mission-detail-action-btn qr" style="margin-top:10px" onclick="closeMissionDetail();openQrScan('${missionId}','${p.playerId}','${m.qrCode||missionId}')">+${tp}tp QR再チャレンジ</button>`
+      : '';
+    actionEl.innerHTML = `<div class="mission-detail-cleared">✓ クリア済み</div>${repeatBtn}`;
   } else if (!unlocked) {
     actionEl.innerHTML = `<div style="text-align:center;font-size:13px;color:var(--sub);padding:14px 0">${lockLabel(lockReason)}</div>`;
+  } else if (isCountMethod) {
+    const initPt = Number(m.points || 0);
+    actionEl.innerHTML = `
+      <div style="margin-bottom:14px">
+        <div style="font-size:13px;color:var(--sub);margin-bottom:10px">倒した数を入力</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="number" id="countInput" min="1" max="99" value="1"
+            style="width:72px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px;color:var(--text);font-size:20px;font-weight:700;text-align:center;outline:none;font-family:var(--font-head)"
+            oninput="updateCountPreview('${missionId}')">
+          <div style="font-size:13px;color:var(--sub)">× ${m.points}pt = <span id="countPreview" style="color:var(--amber);font-weight:700;font-family:var(--font-head)">${initPt}pt</span></div>
+        </div>
+      </div>
+      <button class="mission-detail-action-btn auto" onclick="closeMissionDetail();clearMissionCount('${missionId}','${p.playerId}')">クリア！</button>`;
   } else if (m.clearMethod === 'auto') {
     actionEl.innerHTML = `<button class="mission-detail-action-btn auto" onclick="closeMissionDetail();clearMissionAuto('${missionId}','${p.playerId}')">クリア！</button>`;
   } else if (m.clearMethod === 'qr') {
@@ -919,6 +939,8 @@ function closeMissionDetail() { document.getElementById('missionDetailModal').cl
 async function clearMission(missionId, playerId, evidenceType, evidenceData) {
   try {
     const m = STATE.missions.find(x => x.missionId === missionId);
+    const isCount = m?.clearMethod === 'count';
+    const countVal = isCount ? Math.max(1, parseInt(evidenceData) || 1) : 0;
     const res = await apiPost('mission_clear', {
       playerId, missionId, accountId: STATE.accountId,
       clearMethod: m?.clearMethod || 'auto',
@@ -926,23 +948,49 @@ async function clearMission(missionId, playerId, evidenceType, evidenceData) {
     });
     if (res.error) throw new Error(res.error.message);
     const p = STATE.players.find(x => x.playerId === playerId);
-    if (p && res.status === 'cleared') {
-      p.clearedMissionIds.push(missionId);
-      p.totalPoints         = Number(p.totalPoints)         + Number(res.pointsEarned         || 0);
-      p.totalTrainingPoints = Number(p.totalTrainingPoints) + Number(res.trainingPointsEarned || 0);
-      p.currentLevel = calcRankFromCatTp(p);
-    }
-    renderHero(); renderHome();
-    const tp = Number(res.trainingPointsEarned || 0);
-    if (res.status === 'pending') {
+    if (res.status === 'cleared') {
+      if (p) {
+        if (!p.clearedMissionIds.includes(missionId)) p.clearedMissionIds.push(missionId);
+        const earnedPt = isCount
+          ? countVal * Number(m?.points || 0)
+          : Number(res.pointsEarned || m?.points || 0);
+        const earnedTp = Number(res.trainingPointsEarned || m?.trainingPoints || 0);
+        p.totalPoints         = Number(p.totalPoints)         + earnedPt;
+        p.totalTrainingPoints = Number(p.totalTrainingPoints) + earnedTp;
+        p.currentLevel = calcRankFromCatTp(p);
+      }
+      renderHero(); renderHome();
+      const earnedPt = isCount ? countVal * Number(m?.points || 0) : Number(res.pointsEarned || m?.points || 0);
+      const earnedTp = Number(res.trainingPointsEarned || m?.trainingPoints || 0);
+      showClearCelebration(m, earnedPt, earnedTp);
+    } else if (res.status === 'repeat') {
+      if (p) {
+        const earnedTp = Number(m?.trainingPoints || 0);
+        p.totalTrainingPoints = Number(p.totalTrainingPoints) + earnedTp;
+        p.currentLevel = calcRankFromCatTp(p);
+      }
+      renderHero(); renderHome();
+      const earnedTp = Number(m?.trainingPoints || 0);
+      if (earnedTp > 0) showClearCelebration(m, 0, earnedTp);
+      else showToast('このミッションはクリア済みです');
+    } else if (res.status === 'pending') {
+      renderHero(); renderHome();
       showToast('申請完了！スタッフの確認後にポイントが付与されます');
-    } else {
-      showClearCelebration(m, Number(res.pointsEarned || 0), tp);
     }
   } catch (e) { showToast(e.message, true); }
 }
 async function clearMissionAuto(missionId, playerId)  { await clearMission(missionId, playerId, '185220001', ''); }
 async function clearMissionStaff(missionId, playerId) { await clearMission(missionId, playerId, '185220003', ''); }
+async function clearMissionCount(missionId, playerId) {
+  const count = Math.max(1, parseInt(document.getElementById('countInput')?.value) || 1);
+  await clearMission(missionId, playerId, 'count', String(count));
+}
+function updateCountPreview(missionId) {
+  const m = STATE.missions.find(x => x.missionId === missionId);
+  const count = Math.max(1, parseInt(document.getElementById('countInput')?.value) || 1);
+  const el = document.getElementById('countPreview');
+  if (el) el.textContent = (count * Number(m?.points || 0)) + 'pt';
+}
 
 // ── ミッションクリア演出 ──────────────────────────────
 function showClearCelebration(mission, pts, tp) {
@@ -1324,6 +1372,9 @@ async function redeemItem(itemId, cost, name) {
   try {
     const res = await apiPost('shop_redeem', { playerId: p.playerId, itemId, pointsUsed: cost });
     if (res.error) throw new Error(res.error.message);
+    p.totalPoints = Number(p.totalPoints) - cost;
+    renderHero();
+    renderShop();
     showToast(res.message || `${name} と交換申請しました`);
   } catch (e) { showToast(e.message, true); }
 }
