@@ -874,7 +874,7 @@ function openMissionDetail(missionId) {
   document.getElementById('missionDetailDesc').textContent = m.description || '';
 
   const rankLabels   = { beginner:'初級〜', middle:'中級〜', advanced:'上級〜', expert:'エキスパ〜' };
-  const methodLabels = { auto:'タップ確認', qr:'QRコード', staff:'スタッフ確認' };
+  const methodLabels = { auto:'タップ確認', qr:'QRコード', staff:'スタッフ確認', count:'カウント入力' };
   const tp = Number(m.trainingPoints || 0);
   document.getElementById('missionDetailMeta').innerHTML = `
     <div class="mission-detail-meta-item"><div class="mission-detail-meta-label">獲得ポイント</div><div class="mission-detail-meta-value" style="color:var(--amber)">+${m.points}pt</div></div>
@@ -902,25 +902,29 @@ function openMissionDetail(missionId) {
   const actionEl = document.getElementById('missionDetailAction');
   const isCountMethod = m.clearMethod === 'count';
   if (cleared && !isCountMethod) {
-    const tp = Number(m.trainingPoints || 0);
-    const repeatBtn = tp > 0 && m.clearMethod === 'auto'
-      ? `<button class="mission-detail-action-btn auto" style="margin-top:10px" onclick="closeMissionDetail();clearMissionAuto('${missionId}','${p.playerId}')">+${tp}tp 再チャレンジ</button>`
-      : tp > 0 && m.clearMethod === 'qr'
-      ? `<button class="mission-detail-action-btn qr" style="margin-top:10px" onclick="closeMissionDetail();openQrScan('${missionId}','${p.playerId}','${m.qrCode||missionId}')">+${tp}tp QR再チャレンジ</button>`
+    const tpVal = Number(m.trainingPoints || 0);
+    const repeatBtn = tpVal > 0 && m.clearMethod === 'auto'
+      ? `<button class="mission-detail-action-btn auto" style="margin-top:10px" onclick="closeMissionDetail();clearMissionAuto('${missionId}','${p.playerId}')">+${tpVal}tp 再チャレンジ</button>`
+      : tpVal > 0 && m.clearMethod === 'qr'
+      ? `<button class="mission-detail-action-btn qr" style="margin-top:10px" onclick="closeMissionDetail();openQrScan('${missionId}','${p.playerId}','${m.qrCode||missionId}')">+${tpVal}tp QR再チャレンジ</button>`
       : '';
     actionEl.innerHTML = `<div class="mission-detail-cleared">✓ クリア済み</div>${repeatBtn}`;
   } else if (!unlocked) {
     actionEl.innerHTML = `<div style="text-align:center;font-size:13px;color:var(--sub);padding:14px 0">${lockLabel(lockReason)}</div>`;
   } else if (isCountMethod) {
     const initPt = Number(m.points || 0);
+    const initTp = Number(m.trainingPoints || 0);
     actionEl.innerHTML = `
       <div style="margin-bottom:14px">
-        <div style="font-size:13px;color:var(--sub);margin-bottom:10px">倒した数を入力</div>
+        <div style="font-size:13px;color:var(--sub);margin-bottom:10px">数を入力</div>
         <div style="display:flex;align-items:center;gap:12px">
           <input type="number" id="countInput" min="1" max="99" value="1"
             style="width:72px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px;color:var(--text);font-size:20px;font-weight:700;text-align:center;outline:none;font-family:var(--font-head)"
             oninput="updateCountPreview('${missionId}')">
-          <div style="font-size:13px;color:var(--sub)">× ${m.points}pt = <span id="countPreview" style="color:var(--amber);font-weight:700;font-family:var(--font-head)">${initPt}pt</span></div>
+          <div style="font-size:13px;color:var(--sub)">
+            <div>× ${m.points}pt = <span id="countPreviewPt" style="color:var(--amber);font-weight:700;font-family:var(--font-head)">${initPt}pt</span></div>
+            ${initTp > 0 ? `<div style="margin-top:4px">× ${m.trainingPoints}tp = <span id="countPreviewTp" style="color:var(--teal);font-weight:700;font-family:var(--font-head)">${initTp}tp</span></div>` : ''}
+          </div>
         </div>
       </div>
       <button class="mission-detail-action-btn auto" onclick="closeMissionDetail();clearMissionCount('${missionId}','${p.playerId}')">クリア！</button>`;
@@ -951,17 +955,15 @@ async function clearMission(missionId, playerId, evidenceType, evidenceData) {
     if (res.status === 'cleared') {
       if (p) {
         if (!p.clearedMissionIds.includes(missionId)) p.clearedMissionIds.push(missionId);
-        const earnedPt = isCount
-          ? countVal * Number(m?.points || 0)
-          : Number(res.pointsEarned || m?.points || 0);
-        const earnedTp = Number(res.trainingPointsEarned || m?.trainingPoints || 0);
+        const earnedPt = isCount ? countVal * Number(m?.points || 0) : Number(res.pointsEarned || m?.points || 0);
+        const earnedTp = isCount ? countVal * Number(m?.trainingPoints || 0) : Number(res.trainingPointsEarned || m?.trainingPoints || 0);
         p.totalPoints         = Number(p.totalPoints)         + earnedPt;
         p.totalTrainingPoints = Number(p.totalTrainingPoints) + earnedTp;
         p.currentLevel = calcRankFromCatTp(p);
       }
       renderHero(); renderHome();
       const earnedPt = isCount ? countVal * Number(m?.points || 0) : Number(res.pointsEarned || m?.points || 0);
-      const earnedTp = Number(res.trainingPointsEarned || m?.trainingPoints || 0);
+      const earnedTp = isCount ? countVal * Number(m?.trainingPoints || 0) : Number(res.trainingPointsEarned || m?.trainingPoints || 0);
       showClearCelebration(m, earnedPt, earnedTp);
     } else if (res.status === 'repeat') {
       if (p) {
@@ -988,8 +990,10 @@ async function clearMissionCount(missionId, playerId) {
 function updateCountPreview(missionId) {
   const m = STATE.missions.find(x => x.missionId === missionId);
   const count = Math.max(1, parseInt(document.getElementById('countInput')?.value) || 1);
-  const el = document.getElementById('countPreview');
-  if (el) el.textContent = (count * Number(m?.points || 0)) + 'pt';
+  const elPt = document.getElementById('countPreviewPt');
+  const elTp = document.getElementById('countPreviewTp');
+  if (elPt) elPt.textContent = (count * Number(m?.points || 0)) + 'pt';
+  if (elTp) elTp.textContent = (count * Number(m?.trainingPoints || 0)) + 'tp';
 }
 
 // ── ミッションクリア演出 ──────────────────────────────
